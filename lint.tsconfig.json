@@ -1,0 +1,15 @@
+{
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.js", "app/**/*.jsx"],
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2022",
+    "lib": ["DOM", "ES2022"],
+    "importHelpers": false,
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "declaration": true
+  }
+}
