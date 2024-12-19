@@ -11,14 +11,13 @@ export function ArrowIcon() {
 
 export default function Footer() {
   return (
-    <footer className="mb-10">
-      <div className="mt-8 flex justify-between items-center">
+    <footer className="mt-auto mb-0 py-4">
+      <div className="flex justify-between items-center">
         <ul className="text-neutral-600 dark:text-neutral-300">
           <li>
             <p className="h-7">© {new Date().getFullYear()} Dan Buchholz</p>
           </li>
         </ul>
-
         <ul className="flex flex-row space-x-4 text-neutral-600 dark:text-neutral-300">
           <li>
             <a

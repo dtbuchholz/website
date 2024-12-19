@@ -57,7 +57,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
   }
 
   return (
-    <section>
+    <section className="w-full">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -82,6 +82,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
       />
 
       <h1 className="title font-semibold text-2xl tracking-tighter">{post.metadata.title}</h1>
+      <h3 className="title text-lg my-4">{post.metadata.summary}</h3>
       <div className="flex justify-between items-center my-4 text-sm">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}{" "}
@@ -97,7 +98,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
           </a>
         </div>
       </div>
-      <article className="prose">
+      <article className="prose w-full">
         <MDX source={post.content} />
       </article>
     </section>
