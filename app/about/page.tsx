@@ -22,7 +22,13 @@ const Timeline = ({ events }: { events: TimelineEvent[] }) => (
 export default function Page(): React.ReactNode {
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">About</h1>
+      <h1 className="mb-8 text-2xl font-semibold tracking-tighter">Hi, I'm Dan.</h1>
+      <p className="mb-4">
+        I'm a software engineer building decentralized and distributed systems. Occasionally, I
+        write about various things I'm trying to learn or test my understanding of areas I've worked
+        in. You can dive into my <NextLink href="/blog">posts</NextLink> if you're curious about
+        what I've been working on.
+      </p>
       <p className="mb-8">
         I've spent the past few years working on blockchain systems, starting with Ethereum
         consensus clients and now, mostly, storage systems. Other obsessions include space, physics,
