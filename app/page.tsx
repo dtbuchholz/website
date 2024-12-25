@@ -15,7 +15,7 @@ export default function Page() {
       <hr className="my-8" />
       <h2 className="mb-8 text-2xl font-semibold tracking-tighter">Recent posts</h2>
       <div className="my-8">
-        <BlogPosts />
+        <BlogPosts count={2} />
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 import { formatDate, getBlogPosts } from "app/blog/utils";
 import Link from "next/link";
 
-export function BlogPosts() {
+export function BlogPosts({ count }: { count?: number }) {
   const allBlogs = getBlogPosts();
 
   return (
@@ -13,7 +13,7 @@ export function BlogPosts() {
           }
           return 1;
         })
-        .slice(0, 5)
+        .slice(0, count || allBlogs.length)
         .map((post) => (
           <Link
             key={post.slug}
