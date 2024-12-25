@@ -6,10 +6,14 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { useEffect, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
+type CommandContext = {
+  currentPath: string[];
+};
+
 type Command = {
   name: string;
   description: string;
-  execute: (args: string[]) => string;
+  execute: (args: string[], context: CommandContext) => string | Promise<string>;
 };
 
 const commands: Record<string, Command> = {
@@ -22,13 +26,66 @@ const commands: Record<string, Command> = {
         .join("\r\n");
     },
   },
+  pwd: {
+    name: "pwd",
+    description: "Print working directory",
+    execute: (_, { currentPath }) => {
+      return "/" + currentPath.join("/");
+    },
+  },
   ls: {
     name: "ls",
     description: "List directory contents",
-    execute: () => {
-      // Format ls output with consistent spacing
-      const files = ["blog/", "about.md", "projects/", "resume.pdf"];
-      return files.join("\r\n"); // Use \r\n for consistent line breaks
+    execute: async (args, { currentPath }) => {
+      const path = args[0] || currentPath.join("/");
+      try {
+        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
+        if (!response.ok) throw new Error("Failed to list directory");
+
+        const contents = await response.json();
+        return contents
+          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+          .join("\r\n");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        return `ls: cannot access '${path}': No such file or directory: ${error.message}`;
+      }
+    },
+  },
+  cd: {
+    name: "cd",
+    description: "Change directory",
+    execute: async (args, { currentPath }) => {
+      const path = args[0] || "";
+
+      if (path === "..") {
+        if (currentPath.length > 0) {
+          currentPath.pop();
+        }
+        return "";
+      }
+
+      if (path === "/") {
+        currentPath.length = 0; // Clear the array
+        return "";
+      }
+
+      try {
+        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
+        if (!response.ok) throw new Error("Not a directory");
+
+        const contents = await response.json();
+        if (contents) {
+          // Update current path
+          const newPath = path.split("/").filter(Boolean);
+          currentPath.length = 0; // Clear existing path
+          currentPath.push(...newPath); // Add new path components
+        }
+        return "";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        return `cd: ${path}: No such directory: ${error.message}`;
+      }
     },
   },
 };
@@ -38,6 +95,7 @@ export default function Terminal() {
   const [term, setTerm] = useState<XTerm | null>(null);
   const currentCommand = useRef("");
   const cursorOffset = useRef(0); // Position from the end of the command
+  const currentPath = useRef<string[]>([]); // Initialize empty path array
 
   // Initialize terminal
   useEffect(() => {
@@ -68,8 +126,6 @@ export default function Terminal() {
     };
   }, []);
 
-  // Handle DOM interaction and events
-  // Handle DOM interaction and events
   // Handle DOM interaction and events
   useEffect(() => {
     if (!term || !terminalRef.current) return;
@@ -122,16 +178,28 @@ export default function Terminal() {
         if (command) {
           const [cmd, ...args] = command.split(" ");
           if (commands[cmd]) {
-            const output = commands[cmd].execute(args);
-            term.writeln(output);
+            // Execute command asynchronously
+            const context = { currentPath: currentPath.current };
+            Promise.resolve(commands[cmd].execute(args, context))
+              .then((output) => {
+                term.writeln(output);
+                term.write("$ "); // Write prompt after command completes
+              })
+              .catch((error) => {
+                term.writeln(`Error executing command: ${error.message}`);
+                term.write("$ "); // Write prompt after error
+              });
           } else {
             term.writeln(`Command not found: ${cmd}`);
+            term.write("$ ");
           }
+        } else {
+          // term.writeln(""); // Add newline for empty command
+          term.write("$ ");
         }
 
         currentCommand.current = "";
         cursorOffset.current = 0;
-        term.write("$ ");
       } else if (data === "\u007F") {
         // Backspace
         if (currentCommand.current.length > 0 && term.buffer.active.cursorX > 2) {
