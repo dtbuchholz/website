@@ -13,7 +13,7 @@ type CommandContext = {
 type Command = {
   name: string;
   description: string;
-  execute: (args: string[], context: CommandContext) => string | Promise<string>;
+  execute: (args: string[], context: CommandContext, term: XTerm) => string | Promise<string>;
 };
 
 const commands: Record<string, Command> = {
@@ -24,32 +24,6 @@ const commands: Record<string, Command> = {
       return Object.entries(commands)
         .map(([name, cmd]) => `${name.padEnd(8)} - ${cmd.description}`)
         .join("\r\n");
-    },
-  },
-  pwd: {
-    name: "pwd",
-    description: "Print working directory",
-    execute: (_, { currentPath }) => {
-      return "/" + currentPath.join("/");
-    },
-  },
-  ls: {
-    name: "ls",
-    description: "List directory contents",
-    execute: async (args, { currentPath }) => {
-      const path = args[0] || currentPath.join("/");
-      try {
-        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
-        if (!response.ok) throw new Error("Failed to list directory");
-
-        const contents = await response.json();
-        return contents
-          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
-          .join("\r\n");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        return `ls: cannot access '${path}': No such file or directory: ${error.message}`;
-      }
     },
   },
   cd: {
@@ -86,6 +60,41 @@ const commands: Record<string, Command> = {
       } catch (error: any) {
         return `cd: ${path}: No such directory: ${error.message}`;
       }
+    },
+  },
+  clear: {
+    name: "clear",
+    description: "Clear the terminal screen",
+    execute: (_, __, term) => {
+      term?.clear();
+      term?.write("\x1b[H"); // Move cursor to home position (0,0)
+      return ""; // Return empty string since we don't want to write anything
+    },
+  },
+  ls: {
+    name: "ls",
+    description: "List directory contents",
+    execute: async (args, { currentPath }) => {
+      const path = args[0] || currentPath.join("/");
+      try {
+        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
+        if (!response.ok) throw new Error("Failed to list directory");
+
+        const contents = await response.json();
+        return contents
+          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+          .join("\r\n");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        return `ls: cannot access '${path}': No such file or directory: ${error.message}`;
+      }
+    },
+  },
+  pwd: {
+    name: "pwd",
+    description: "Print working directory",
+    execute: (_, { currentPath }) => {
+      return "/" + currentPath.join("/");
     },
   },
 };
@@ -180,7 +189,7 @@ export default function Terminal() {
           if (commands[cmd]) {
             // Execute command asynchronously
             const context = { currentPath: currentPath.current };
-            Promise.resolve(commands[cmd].execute(args, context))
+            Promise.resolve(commands[cmd].execute(args, context, term))
               .then((output) => {
                 term.writeln(output);
                 term.write("$ "); // Write prompt after command completes
