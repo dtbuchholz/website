@@ -37,6 +37,7 @@ export default function Terminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const [term, setTerm] = useState<XTerm | null>(null);
   const currentCommand = useRef("");
+  const cursorOffset = useRef(0); // Position from the end of the command
 
   // Initialize terminal
   useEffect(() => {
@@ -87,24 +88,26 @@ export default function Terminal() {
     term.write("$ ");
 
     // Handle input
+    // Add these refs to track cursor and command state
+
+    // Handle input
     const disposable = term.onData((data) => {
       const code = data.charCodeAt(0);
       const isArrowKey = code === 27; // ESC key, which prefixes arrow keys
 
       if (isArrowKey) {
-        const arrowKey = data.slice(1); // Get the actual arrow key sequence
+        const arrowKey = data.slice(1);
         if (arrowKey === "[C") {
           // Right arrow
-          // Only move right if we're not at the end of the command
-          if (term.buffer.active.cursorX < currentCommand.current.length + 2) {
-            // +2 for the "$ " prompt
+          if (cursorOffset.current > 0) {
+            cursorOffset.current--;
             term.write(data);
           }
         } else if (arrowKey === "[D") {
           // Left arrow
-          // Only move left if we're not at the start of the command (after the prompt)
           if (term.buffer.active.cursorX > 2) {
-            // 2 is the position after "$ "
+            // Don't go past prompt
+            cursorOffset.current++;
             term.write(data);
           }
         }
@@ -126,41 +129,70 @@ export default function Terminal() {
           }
         }
 
-        currentCommand.current = ""; // Reset command
+        currentCommand.current = "";
+        cursorOffset.current = 0;
         term.write("$ ");
       } else if (data === "\u007F") {
         // Backspace
-        // Only backspace if there's text to delete
-        if (currentCommand.current.length > 0) {
-          currentCommand.current = currentCommand.current.slice(0, -1);
-          term.write("\b \b");
+        if (currentCommand.current.length > 0 && term.buffer.active.cursorX > 2) {
+          const pos = currentCommand.current.length - cursorOffset.current;
+          if (pos > 0) {
+            // Remove character at current position
+            currentCommand.current =
+              currentCommand.current.slice(0, pos - 1) + currentCommand.current.slice(pos);
+
+            // Move cursor to start of command (after prompt)
+            term.write("\b".repeat(pos));
+            // Clear the current command content
+            term.write(" ".repeat(currentCommand.current.length + 1));
+            // Move back to start of command
+            term.write("\b".repeat(currentCommand.current.length + 1));
+            // Write the updated command
+            term.write(currentCommand.current);
+            // Restore cursor position
+            term.write("\b".repeat(cursorOffset.current));
+          }
         }
       } else if (data === "\u0017" || data === "\u001b\u007F" || data === "\u0008") {
-        // Ctrl+W or Cmd+Backspace or Option+Backspace or Ctrl+Backspace
-        // Delete last word
-        const lastSpace = currentCommand.current.lastIndexOf(" ");
-        if (lastSpace !== -1) {
-          const charsToDelete = currentCommand.current.length - lastSpace - 1;
-          currentCommand.current = currentCommand.current.slice(0, lastSpace + 1);
-          term.write(
-            "\b".repeat(charsToDelete) + " ".repeat(charsToDelete) + "\b".repeat(charsToDelete)
-          );
-        } else {
-          // No spaces found, delete entire command
-          const length = currentCommand.current.length;
-          currentCommand.current = "";
-          term.write("\b".repeat(length) + " ".repeat(length) + "\b".repeat(length));
+        // Word delete
+        if (currentCommand.current.length > 0) {
+          const pos = currentCommand.current.length - cursorOffset.current;
+          let newPos = pos;
+
+          // Find the start of the current word
+          while (newPos > 0 && currentCommand.current[newPos - 1] === " ") newPos--;
+          while (newPos > 0 && currentCommand.current[newPos - 1] !== " ") newPos--;
+
+          if (newPos >= 0) {
+            // Remove word
+            currentCommand.current =
+              currentCommand.current.slice(0, newPos) + currentCommand.current.slice(pos);
+
+            // Move cursor to start of command (after prompt)
+            term.write("\b".repeat(pos));
+            // Clear the current command content
+            term.write(" ".repeat(pos));
+            // Move back to start of command
+            term.write("\b".repeat(pos));
+            // Write the updated command
+            term.write(currentCommand.current);
+            // Restore cursor position
+            term.write("\b".repeat(cursorOffset.current));
+          }
         }
-      } else if (data === "\u0015") {
-        // Ctrl+U
-        // Clear entire line
-        const length = currentCommand.current.length;
-        currentCommand.current = "";
-        term.write("\b".repeat(length) + " ".repeat(length) + "\b".repeat(length));
       } else if (!isArrowKey && code >= 32 && code < 127) {
         // Printable characters
-        currentCommand.current += data;
-        term.write(data);
+        const pos = currentCommand.current.length - cursorOffset.current;
+        // Insert character at cursor position
+        currentCommand.current =
+          currentCommand.current.slice(0, pos) + data + currentCommand.current.slice(pos);
+
+        // Move cursor to start of command (after prompt)
+        term.write("\b".repeat(pos));
+        // Write the updated command
+        term.write(currentCommand.current);
+        // Restore cursor position
+        term.write("\b".repeat(cursorOffset.current));
       }
     });
 
