@@ -41,6 +41,7 @@ export default function Terminal() {
 
   // Handle DOM interaction and events
   // Handle DOM interaction and events
+  // Handle DOM interaction and events
   useEffect(() => {
     if (!term || !terminalRef.current) return;
 
@@ -71,6 +72,28 @@ export default function Terminal() {
           currentCommand.current = currentCommand.current.slice(0, -1);
           term.write("\b \b");
         }
+      } else if (data === "\u0017" || data === "\u001b\u007F" || data === "\u0008") {
+        // Ctrl+W or Cmd+Backspace or Option+Backspace or Ctrl+Backspace
+        // Delete last word
+        const lastSpace = currentCommand.current.lastIndexOf(" ");
+        if (lastSpace !== -1) {
+          const charsToDelete = currentCommand.current.length - lastSpace - 1;
+          currentCommand.current = currentCommand.current.slice(0, lastSpace + 1);
+          term.write(
+            "\b".repeat(charsToDelete) + " ".repeat(charsToDelete) + "\b".repeat(charsToDelete)
+          );
+        } else {
+          // No spaces found, delete entire command
+          const length = currentCommand.current.length;
+          currentCommand.current = "";
+          term.write("\b".repeat(length) + " ".repeat(length) + "\b".repeat(length));
+        }
+      } else if (data === "\u0015") {
+        // Ctrl+U
+        // Clear entire line
+        const length = currentCommand.current.length;
+        currentCommand.current = "";
+        term.write("\b".repeat(length) + " ".repeat(length) + "\b".repeat(length));
       } else {
         currentCommand.current += data;
         term.write(data);
