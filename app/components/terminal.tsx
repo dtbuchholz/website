@@ -14,6 +14,7 @@ type CompletionState = {
   matches: string[];
   currentIndex: number;
   originalInput: string;
+  linePositionY: number;
 };
 
 type Command = {
@@ -153,7 +154,7 @@ export default function Terminal() {
       return contents
         .filter(({ name }) => name.toLowerCase().startsWith(searchTerm.toLowerCase()))
         .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
-        .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+        .sort((a: string, b: string) => a.localeCompare(b)); // Sort alphabetically
     } catch {
       return [];
     }
@@ -170,36 +171,31 @@ export default function Terminal() {
       const matches = await getCompletions(partial, currentPath.current);
       if (matches.length === 0) return;
 
+      const posY =
+        term!.buffer.active.baseY === 0
+          ? term!.buffer.active.cursorY + 1
+          : term!.buffer.active.length;
+
       completionState.current = {
         matches,
         currentIndex: 0,
         originalInput: command,
+        linePositionY: posY,
       };
 
-      if (matches.length === 1) {
-        // Single match - complete it
-        const newCommand = `${cmd} ${matches[0]}`;
-        currentCommand.current = newCommand;
-        term?.write("\r\x1b[K$ " + newCommand);
-      } else {
-        // Multiple matches - show options
-        term?.writeln("");
-        term?.write(matches.join("  "));
+      // Show matches and select first one
+      term?.writeln("");
+      term?.write(matches.join("  "));
+      term?.select(0, posY, matches[0].length);
 
-        // Select (highlight) the first match
-        const matchStart = 0;
-        const matchLength = matches[0].length;
-        term?.select(matchStart, term.buffer.active.cursorY + 1, matchLength);
-
-        // Update command with selected match
-        const newCommand = `${cmd} ${matches[0]}`;
-        currentCommand.current = newCommand;
-        term?.writeln("");
-        term?.write("\r\x1b[K$ " + newCommand);
-      }
+      // Update command with selected match
+      const newCommand = `${cmd} ${matches[0]}`;
+      currentCommand.current = newCommand;
+      term?.writeln("");
+      term?.write("\r\x1b[K$ " + newCommand);
     } else {
       // Subsequent tab presses - cycle through matches
-      const { matches } = completionState.current;
+      const { matches, linePositionY } = completionState.current;
       completionState.current.currentIndex =
         (completionState.current.currentIndex + 1) % matches.length;
 
@@ -208,8 +204,7 @@ export default function Terminal() {
       const prevMatches = matches.slice(0, completionState.current.currentIndex);
       const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0); // +2 for the two spaces
 
-      // Select (highlight) the current match
-      term?.select(matchStart, term.buffer.active.cursorY - 1, currentMatch.length);
+      term?.select(matchStart, linePositionY, currentMatch.length);
 
       // Update command with selected match
       const newCommand = `${cmd} ${currentMatch}`;
@@ -266,12 +261,20 @@ export default function Terminal() {
     term.write("$ ");
 
     // Handle input
-    // Add these refs to track cursor and command state
-
-    // Handle input
     const disposable = term.onData((data) => {
       const code = data.charCodeAt(0);
       const isArrowKey = code === 27; // ESC key, which prefixes arrow keys
+
+      if (data === "\t") {
+        // Tab key
+        const command = currentCommand.current.trim();
+        if (!command) return;
+        handleTabCompletion(command);
+        return;
+      }
+      if (completionState.current) {
+        completionState.current = null;
+      }
 
       if (isArrowKey) {
         const arrowKey = data.slice(1);
@@ -290,17 +293,6 @@ export default function Terminal() {
           }
         }
         return;
-      }
-
-      if (data === "\t") {
-        // Tab key
-        const command = currentCommand.current.trim();
-        if (!command) return;
-        handleTabCompletion(command);
-        return;
-      }
-      if (completionState.current) {
-        completionState.current = null;
       }
 
       if (data === "\r") {
