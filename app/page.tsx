@@ -1,11 +1,22 @@
+import { LoadingSpinner } from "app/components/loading";
 import { BlogPosts } from "app/components/posts";
+import { DynamicOptionsLoadingProps } from "next/dist/shared/lib/dynamic";
 import dynamic from "next/dynamic";
 
 const Terminal = dynamic(() => import("app/components/terminal"), {
   ssr: false,
-  loading: () => (
-    <div className="h-[400px] w-full rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-black" />
-  ),
+  loading: (props: DynamicOptionsLoadingProps) => {
+    if (props.pastDelay && props.isLoading) {
+      return (
+        <div className="relative h-[400px] w-full rounded-lg overflow-hidden border border-neutral-800">
+          <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+            <LoadingSpinner />
+          </div>
+        </div>
+      );
+    }
+    return null;
+  },
 });
 
 export default function Page() {
