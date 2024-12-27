@@ -5,6 +5,7 @@ import OpenAI from "openai";
 import { FsItem } from "../fs/route";
 
 const APP_ROOT = join(process.cwd(), "app");
+const SERVER_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -123,11 +124,15 @@ export async function POST(req: Request) {
       content = await readFile(aboutPath, "utf-8");
     } else {
       // Make request to fs api
-      const response = await fetch(`http://localhost:3000/api/fs?path=${path}`);
+      const response = await fetch(`${SERVER_API_BASE_URL}/api/fs?path=${path}`);
+      if (!response.ok) throw new Error("File or directory not found");
+
       const data = (await response.json()) as FsItem[];
-      const filename = path.split("/").pop();
-      console.log("data", data);
-      content = data.find((item) => item.name === filename)?.fileContents || "";
+      // Join all the file contents
+      content = data
+        .filter((item) => item.fileContents)
+        .map((item) => `# Filename: ${item.name}\n${item.fileContents}`)
+        .join("\n");
     }
     return typeHandler(type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -198,7 +198,7 @@ async function handleSummarize(path: string, term: XTerm) {
       method: "POST",
       body: JSON.stringify({ path, type: "summarize" }),
     });
-
+    if (!response.ok) throw new Error("File or directory not found");
     // Handle streaming response
     const reader = response.body?.getReader();
     while (true) {
@@ -229,6 +229,8 @@ async function handleAsk(path: string, question: string, term: XTerm) {
       method: "POST",
       body: JSON.stringify({ path, type: "ask", question }),
     });
+    if (!response.ok) throw new Error("File or directory not found");
+
     const reader = response.body?.getReader();
     while (true) {
       const result = await reader?.read();
