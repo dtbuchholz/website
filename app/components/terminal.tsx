@@ -88,6 +88,24 @@ const commands: Record<string, Command> = {
       }
     },
   },
+  ai: {
+    name: "ai",
+    description: "Summarize or ask questions about various files",
+    execute: async (args, context, term) => {
+      const [subcommand, path] = args;
+
+      switch (subcommand) {
+        case "sum":
+        case "summarize":
+          return handleSummarize(path, context, term);
+        case "ask":
+          const question = args.slice(2).join(" ");
+          return handleAsk(path, question, context, term);
+        default:
+          return "Usage: ai [sum|ask] <path> [question]";
+      }
+    },
+  },
   clear: {
     name: "clear",
     description: "Clear the terminal screen",
@@ -132,6 +150,56 @@ const commands: Record<string, Command> = {
     },
   },
 };
+
+async function handleSummarize(path: string, context: CommandContext, term: XTerm) {
+  if (!path || path.trim() === "") {
+    return "Usage: ai summarize <path> (alias: 'sum')";
+  }
+  try {
+    term.write("Summarizing...\r\n");
+
+    const response = await fetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify({ path, type: "summarize" }),
+    });
+
+    // Handle streaming response
+    const reader = response.body?.getReader();
+    while (true) {
+      const result = await reader?.read();
+      if (result?.done) break;
+      const response = JSON.parse(new TextDecoder().decode(result?.value));
+      term.write(response.summary);
+    }
+
+    return "";
+  } catch (error) {
+    return `Error: ${error.message}`;
+  }
+}
+
+async function handleAsk(path: string, question: string, context: CommandContext, term: XTerm) {
+  if (!question || question.trim() === "" || !path || path.trim() === "") {
+    return "Usage: ai ask <path> <question>";
+  }
+  try {
+    term.write("Asking...\r\n");
+    const response = await fetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify({ path, type: "ask", question }),
+    });
+    const reader = response.body?.getReader();
+    while (true) {
+      const result = await reader?.read();
+      if (result?.done) break;
+      const response = JSON.parse(new TextDecoder().decode(result?.value));
+      term.write(response.answer);
+    }
+    return "";
+  } catch (error) {
+    return `Error: ${error.message}`;
+  }
+}
 
 export default function Terminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
