@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
+@font-face {
+  font-family: "Geist-Mono-Regular";
+  src: url("https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/996b00fb-4b7a-403d-8da2-ce2225450681.woff2")
+    format("woff2");
+}
 
 ::selection {
   background-color: #47a3f3;
@@ -17,6 +22,7 @@
   --sh-property: #e25a1c;
   --sh-entity: #e25a1c;
   --sh-secondary: var(--color-neutral-900);
+  --font-family-mono: "Geist-Mono-Regular", Consolas, monaco, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,6 +39,11 @@
 }
 
 html {
+  min-width: 360px;
+}
+html,
+body {
+  font-family: var(--font-family-mono);
   min-width: 360px;
 }
 
@@ -74,7 +85,7 @@ section a {
 
 code {
   @apply px-1 py-0.5 rounded-lg;
-  font-family: "Fira Code", monospace;
+  /* font-family: "Fira Code", monospace; */
   font-size: 94%;
 }
 
