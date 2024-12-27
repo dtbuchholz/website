@@ -10,6 +10,12 @@ type CommandContext = {
   currentPath: string[];
 };
 
+type CompletionState = {
+  matches: string[];
+  currentIndex: number;
+  originalInput: string;
+};
+
 type Command = {
   name: string;
   description: string;
@@ -30,7 +36,13 @@ const commands: Record<string, Command> = {
     name: "cd",
     description: "Change directory",
     execute: async (args, { currentPath }) => {
-      const path = args[0] || "";
+      const path = args[0];
+
+      // No args - return to root
+      if (!path) {
+        currentPath.length = 0;
+        return "";
+      }
 
       if (path === "..") {
         if (currentPath.length > 0) {
@@ -45,16 +57,27 @@ const commands: Record<string, Command> = {
       }
 
       try {
-        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
-        if (!response.ok) throw new Error("Not a directory");
+        let fullPath;
+        if (currentPath.length > 0) {
+          // In a subdirectory - join paths
+          fullPath = `${currentPath.join("/")}/${path}`;
+        } else {
+          // At root - use path directly
+          fullPath = path;
+        }
+        const response = await fetch(`/api/fs?path=${encodeURIComponent(fullPath)}`);
+        if (!response.ok) throw new Error("File or directory not found");
 
         const contents = await response.json();
-        if (contents) {
-          // Update current path
-          const newPath = path.split("/").filter(Boolean);
-          currentPath.length = 0; // Clear existing path
-          currentPath.push(...newPath); // Add new path components
+
+        // Check if the target itself is a file (not its contents)
+        const targetItem = contents.find((item) => item.name === path.replace(/\/$/, ""));
+        if (targetItem?.type === "file") {
+          return `cd: ${path}: Not a directory`;
         }
+
+        // Update current path with just the new segment
+        currentPath.push(...path.split("/").filter(Boolean));
         return "";
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -75,10 +98,18 @@ const commands: Record<string, Command> = {
     name: "ls",
     description: "List directory contents",
     execute: async (args, { currentPath }) => {
-      const path = args[0] || currentPath.join("/");
+      let path;
+      if (!args[0]) {
+        // No args - list current directory
+        path = currentPath.join("/");
+      } else {
+        // Args provided - construct full path from current location
+        path = currentPath.length > 0 ? `${currentPath.join("/")}/${args[0]}` : args[0];
+      }
       try {
         const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
-        if (!response.ok) throw new Error("Failed to list directory");
+        if (!response.ok)
+          throw new Error("Failed to list directory" + `/api/fs?path=${encodeURIComponent(path)}`);
 
         const contents = await response.json();
         return contents
@@ -105,13 +136,95 @@ export default function Terminal() {
   const currentCommand = useRef("");
   const cursorOffset = useRef(0); // Position from the end of the command
   const currentPath = useRef<string[]>([]); // Initialize empty path array
+  const completionState = useRef<CompletionState | null>(null);
+
+  const getCompletions = async (path: string, currentPath: string[]): Promise<string[]> => {
+    try {
+      const searchPath = path.includes("/")
+        ? path.slice(0, path.lastIndexOf("/") + 1)
+        : currentPath.join("/");
+
+      const response = await fetch(`/api/fs?path=${encodeURIComponent(searchPath)}`);
+      if (!response.ok) return [];
+
+      const contents = await response.json();
+      const searchTerm = path.split("/").pop() || "";
+
+      return contents
+        .filter(({ name }) => name.toLowerCase().startsWith(searchTerm.toLowerCase()))
+        .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+        .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+    } catch {
+      return [];
+    }
+  };
+
+  const handleTabCompletion = async (command: string) => {
+    const [cmd, ...args] = command.split(" ");
+    if (cmd !== "cd" && cmd !== "ls") return;
+
+    const partial = args[args.length - 1] || "";
+
+    if (!completionState.current) {
+      // First tab press - get matches
+      const matches = await getCompletions(partial, currentPath.current);
+      if (matches.length === 0) return;
+
+      completionState.current = {
+        matches,
+        currentIndex: 0,
+        originalInput: command,
+      };
+
+      if (matches.length === 1) {
+        // Single match - complete it
+        const newCommand = `${cmd} ${matches[0]}`;
+        currentCommand.current = newCommand;
+        term?.write("\r\x1b[K$ " + newCommand);
+      } else {
+        // Multiple matches - show options
+        term?.writeln("");
+        term?.write(matches.join("  "));
+
+        // Select (highlight) the first match
+        const matchStart = 0;
+        const matchLength = matches[0].length;
+        term?.select(matchStart, term.buffer.active.cursorY + 1, matchLength);
+
+        // Update command with selected match
+        const newCommand = `${cmd} ${matches[0]}`;
+        currentCommand.current = newCommand;
+        term?.writeln("");
+        term?.write("\r\x1b[K$ " + newCommand);
+      }
+    } else {
+      // Subsequent tab presses - cycle through matches
+      const { matches } = completionState.current;
+      completionState.current.currentIndex =
+        (completionState.current.currentIndex + 1) % matches.length;
+
+      // Calculate position of current match
+      const currentMatch = matches[completionState.current.currentIndex];
+      const prevMatches = matches.slice(0, completionState.current.currentIndex);
+      const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0); // +2 for the two spaces
+
+      // Select (highlight) the current match
+      term?.select(matchStart, term.buffer.active.cursorY - 1, currentMatch.length);
+
+      // Update command with selected match
+      const newCommand = `${cmd} ${currentMatch}`;
+      currentCommand.current = newCommand;
+      term?.write("\r\x1b[K$ " + newCommand);
+    }
+  };
 
   // Initialize terminal
   useEffect(() => {
     const terminal = new XTerm({
       cursorBlink: true,
       cursorInactiveStyle: "block",
-      fontFamily: "Fira Code",
+      // fontFamily: "Fira Code",
+      fontSize: 15,
       lineHeight: 1.2,
       theme: {
         background: "#000000",
@@ -148,8 +261,8 @@ export default function Terminal() {
     fitAddon.fit(); // Initial fit
 
     // Initial greeting
-    term.writeln("Welcome to danbuchholz.com terminal");
-    term.writeln('Type "help" for available commands\n');
+    term.writeln("Welcome to danbuchholz.com");
+    term.writeln("Type 'help' for available commands\n");
     term.write("$ ");
 
     // Handle input
@@ -177,6 +290,17 @@ export default function Terminal() {
           }
         }
         return;
+      }
+
+      if (data === "\t") {
+        // Tab key
+        const command = currentCommand.current.trim();
+        if (!command) return;
+        handleTabCompletion(command);
+        return;
+      }
+      if (completionState.current) {
+        completionState.current = null;
       }
 
       if (data === "\r") {

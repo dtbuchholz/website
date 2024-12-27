@@ -1,4 +1,4 @@
-import { readdir } from "fs/promises";
+import { readdir, stat } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 
@@ -18,16 +18,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const files = await readdir(normalizedPath, { withFileTypes: true });
+    // Check if path is a directory or file
+    const stats = await stat(normalizedPath);
 
-    const contents = files
-      .filter((file) => !file.name.startsWith(".")) // Hide dot files
-      .map((file) => ({
-        name: file.name,
-        type: file.isDirectory() ? "directory" : "file",
-      }));
-
-    return NextResponse.json(contents);
+    if (stats.isDirectory()) {
+      // Handle directory listing
+      const files = await readdir(normalizedPath, { withFileTypes: true });
+      const contents = files
+        .filter((file) => !file.name.startsWith("."))
+        .map((file) => ({
+          name: file.name,
+          type: file.isDirectory() ? "directory" : "file",
+        }));
+      return NextResponse.json(contents);
+    } else {
+      // Handle single file
+      return NextResponse.json([
+        {
+          name: requestedPath.split("/").pop() || "",
+          type: "file",
+        },
+      ]);
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: `Directory not found: ${error.message}` }, { status: 404 });
