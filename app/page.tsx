@@ -1,7 +1,8 @@
-import { LoadingSpinner } from "app/components/loading";
-import { BlogPosts } from "app/components/posts";
 import { DynamicOptionsLoadingProps } from "next/dist/shared/lib/dynamic";
 import dynamic from "next/dynamic";
+import type { JSX } from "react";
+import { LoadingSpinner } from "app/components/loading";
+import { BlogPosts } from "app/components/posts";
 
 const Terminal = dynamic(() => import("app/components/terminal"), {
   ssr: false,
@@ -19,7 +20,7 @@ const Terminal = dynamic(() => import("app/components/terminal"), {
   },
 });
 
-export default function Page() {
+export default function Page(): JSX.Element {
   return (
     <section>
       <Terminal />

@@ -10,17 +10,17 @@ const headerInfo = {
   title: "Hi, I'm Dan.",
   content: [
     <>
-      I'm a software engineer building decentralized and distributed systems. Occasionally, I write
-      about various things I'm trying to learn or test my understanding of areas I've worked in. You
-      can dive into my <NextLink href="/blog">posts</NextLink> if you're curious about what I've
-      been working on.
+      I&apos;m a software engineer building decentralized and distributed systems. Occasionally, I
+      write about various things I&apos;m trying to learn or test my understanding of areas
+      I&apos;ve worked in. You can dive into my <NextLink href="/blog">posts</NextLink> if
+      you&apos;re curious.
     </>,
     <>
-      I've spent the past few years working on blockchain systems, starting with Ethereum consensus
-      clients and now, mostly, storage systems. Other obsessions include space, physics, and
-      artificial intelligence. Born and raised in Chicago, I moved to San Francisco to get involved
-      in another early stage startup, prior to more recently moving to New York City. Below are some
-      of the things I've worked on and a general timeline.
+      I&apos;ve spent the past few years working on blockchain systems, starting with Ethereum
+      consensus clients and now, mostly, storage systems. Other obsessions include space, physics,
+      and artificial intelligence. Born and raised in Chicago, I moved to San Francisco to get
+      involved in another early stage startup, prior to more recently moving to New York City. Below
+      are some of the things I&apos;ve worked on over the years.
     </>,
   ],
 };
@@ -31,7 +31,7 @@ const timelineEvents: TimelineEvent[] = [
     title: "Building decentralized storage systems",
     content: (
       <>
-        I've been focused on both growth and engineering at{" "}
+        I&apos;ve been focused on both growth and engineering at{" "}
         <NextLink href="https://linktr.ee/textileio">Textile</NextLink>. We build web3 native
         storage solutions. This started with{" "}
         <NextLink href="https://docs.tableland.xyz">Tableland</NextLink>, which is a decentralized
@@ -39,12 +39,12 @@ const timelineEvents: TimelineEvent[] = [
         an offchain network of validators.
         <br />
         <br />
-        Now, I'm primarily focused on building a data storage L2 chain called{" "}
+        Now, I&apos;m primarily focused on building a data storage L2 chain called{" "}
         <NextLink href="https://basin.textile.io/">Basin</NextLink>. Think of it as a hot data layer
         for decentralized applications with mix across S3 and Cloudflare functionality. Fast
         finality, large scale data (GiBs per transaction)—all programmable onchain within
-        horizontally scalable subnets and custom consensus. A lot of Rust, some Solidity, and SDKs
-        in JS/TS.
+        horizontally scalable subnets and custom consensus. A lot of Rust, Solidity (hand rolling
+        CBOR encoding/decoding...), and SDKs in JS/TS.
       </>
     ),
   },
@@ -53,9 +53,9 @@ const timelineEvents: TimelineEvent[] = [
     title: "Fellow at Ethereum Foundation",
     content: (
       <>
-        I spent ~6 months as a Core Developer where I contributed to an Ethereum research team's
-        codebase, focused on consensus clients and proof-of-stake called{" "}
-        <NextLink href="https://github.com/ethereum/consensus">
+        I spent ~6 months as a Core Developer where I contributed to an Ethereum research
+        team&apos;s codebase, focused on consensus clients and proof-of-stake called{" "}
+        <NextLink href="https://github.com/ralexstokes/ethereum-consensus">
           <code>ethereum-consensus</code>
         </NextLink>
         , written in Rust. Around the same time, I was building small apps that interacted with
@@ -90,9 +90,9 @@ const timelineEvents: TimelineEvent[] = [
         <NextLink href="https://en.wikipedia.org/wiki/University_of_Illinois_Urbana-Champaign">
           University of Illinois at Urbana-Champaign
         </NextLink>{" "}
-        with a B.S. in Systems Engineering and (nearly) a minor in Electrical Engineering. I didn't
-        study computer science (aside from an intro to C course), but over the years, I've taught
-        myself the fundamentals through self-study and working on side projects.
+        with a B.S. in Systems Engineering and (nearly) a minor in Electrical Engineering. I
+        didn&apos;t study computer science (aside from an intro to C course), but over the years,
+        I&apos;ve taught myself the fundamentals through self-study and working on side projects.
       </>
     ),
   },

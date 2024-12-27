@@ -3,7 +3,7 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Terminal as XTerm } from "@xterm/xterm";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
 type CommandContext = {
@@ -278,120 +278,123 @@ export default function Terminal() {
     }
   };
 
-  const handleTabCompletion = async (command: string) => {
-    const [cmd, ...args] = command.split(" ");
+  const handleTabCompletion = useCallback(
+    async (command: string) => {
+      const [cmd, ...args] = command.split(" ");
 
-    // Only handle tab completion for specific commands
-    const completableCommands = ["cd", "ls", "ai"];
-    if (!completableCommands.includes(cmd)) return;
+      // Only handle tab completion for specific commands
+      const completableCommands = ["cd", "ls", "ai"];
+      if (!completableCommands.includes(cmd)) return;
 
-    // For 'ai' command, only complete paths after subcommand
-    let partial = "";
-    if (cmd === "ai") {
-      // No subcommand yet, don't complete
-      if (args.length === 0) return;
+      // For 'ai' command, only complete paths after subcommand
+      let partial = "";
+      if (cmd === "ai") {
+        // No subcommand yet, don't complete
+        if (args.length === 0) return;
 
-      // First argument should be subcommand
-      const [subcommand, ...restArgs] = args;
-      if (!["sum", "summarize", "ask"].includes(subcommand)) return;
+        // First argument should be subcommand
+        const [subcommand, ...restArgs] = args;
+        if (!["sum", "summarize", "ask"].includes(subcommand)) return;
 
-      // Get the partial path from the last argument
-      partial = restArgs[restArgs.length - 1] || "";
+        // Get the partial path from the last argument
+        partial = restArgs[restArgs.length - 1] || "";
 
-      if (!completionState.current) {
-        // First tab press - get matches
-        const matches = await getCompletions(partial, currentPath.current);
-        if (matches.length === 0) return;
+        if (!completionState.current) {
+          // First tab press - get matches
+          const matches = await getCompletions(partial, currentPath.current);
+          if (matches.length === 0) return;
 
-        const posY =
-          term!.buffer.active.baseY === 0
-            ? term!.buffer.active.cursorY + 1
-            : term!.buffer.active.length;
+          const posY =
+            term!.buffer.active.baseY === 0
+              ? term!.buffer.active.cursorY + 1
+              : term!.buffer.active.length;
 
-        completionState.current = {
-          matches,
-          currentIndex: 0,
-          originalInput: command,
-          linePositionY: posY,
-        };
+          completionState.current = {
+            matches,
+            currentIndex: 0,
+            originalInput: command,
+            linePositionY: posY,
+          };
 
-        // Show matches and select first one
-        term?.writeln("");
-        term?.write(matches.join("  "));
-        term?.select(0, posY, matches[0].length);
+          // Show matches and select first one
+          term?.writeln("");
+          term?.write(matches.join("  "));
+          term?.select(0, posY, matches[0].length);
 
-        // Update command with selected match
-        const newCommand = `${cmd} ${subcommand} ${matches[0]}`;
-        currentCommand.current = newCommand;
-        term?.writeln("");
-        term?.write("\r\x1b[K$ " + newCommand);
+          // Update command with selected match
+          const newCommand = `${cmd} ${subcommand} ${matches[0]}`;
+          currentCommand.current = newCommand;
+          term?.writeln("");
+          term?.write("\r\x1b[K$ " + newCommand);
+        } else {
+          // Subsequent tab presses - cycle through matches
+          const { matches, linePositionY } = completionState.current;
+          completionState.current.currentIndex =
+            (completionState.current.currentIndex + 1) % matches.length;
+
+          const currentMatch = matches[completionState.current.currentIndex];
+          const prevMatches = matches.slice(0, completionState.current.currentIndex);
+          const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0);
+
+          term?.select(matchStart, linePositionY, currentMatch.length);
+
+          // Update command with selected match
+          const newCommand = `${cmd} ${subcommand} ${currentMatch}`;
+          currentCommand.current = newCommand;
+          term?.write("\r\x1b[K$ " + newCommand);
+        }
       } else {
-        // Subsequent tab presses - cycle through matches
-        const { matches, linePositionY } = completionState.current;
-        completionState.current.currentIndex =
-          (completionState.current.currentIndex + 1) % matches.length;
+        const partial = args[args.length - 1] || "";
 
-        const currentMatch = matches[completionState.current.currentIndex];
-        const prevMatches = matches.slice(0, completionState.current.currentIndex);
-        const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0);
+        if (!completionState.current) {
+          // First tab press - get matches
+          const matches = await getCompletions(partial, currentPath.current);
+          if (matches.length === 0) return;
 
-        term?.select(matchStart, linePositionY, currentMatch.length);
+          const posY =
+            term!.buffer.active.baseY === 0
+              ? term!.buffer.active.cursorY + 1
+              : term!.buffer.active.length;
 
-        // Update command with selected match
-        const newCommand = `${cmd} ${subcommand} ${currentMatch}`;
-        currentCommand.current = newCommand;
-        term?.write("\r\x1b[K$ " + newCommand);
+          completionState.current = {
+            matches,
+            currentIndex: 0,
+            originalInput: command,
+            linePositionY: posY,
+          };
+
+          // Show matches and select first one
+          term?.writeln("");
+          term?.write(matches.join("  "));
+          term?.select(0, posY, matches[0].length);
+
+          // Update command with selected match
+          const newCommand = `${cmd} ${matches[0]}`;
+          currentCommand.current = newCommand;
+          term?.writeln("");
+          term?.write("\r\x1b[K$ " + newCommand);
+        } else {
+          // Subsequent tab presses - cycle through matches
+          const { matches, linePositionY } = completionState.current;
+          completionState.current.currentIndex =
+            (completionState.current.currentIndex + 1) % matches.length;
+
+          // Calculate position of current match
+          const currentMatch = matches[completionState.current.currentIndex];
+          const prevMatches = matches.slice(0, completionState.current.currentIndex);
+          const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0); // + 2 for the two spaces
+
+          term?.select(matchStart, linePositionY, currentMatch.length);
+
+          // Update command with selected match
+          const newCommand = `${cmd} ${currentMatch}`;
+          currentCommand.current = newCommand;
+          term?.write("\r\x1b[K$ " + newCommand);
+        }
       }
-    } else {
-      const partial = args[args.length - 1] || "";
-
-      if (!completionState.current) {
-        // First tab press - get matches
-        const matches = await getCompletions(partial, currentPath.current);
-        if (matches.length === 0) return;
-
-        const posY =
-          term!.buffer.active.baseY === 0
-            ? term!.buffer.active.cursorY + 1
-            : term!.buffer.active.length;
-
-        completionState.current = {
-          matches,
-          currentIndex: 0,
-          originalInput: command,
-          linePositionY: posY,
-        };
-
-        // Show matches and select first one
-        term?.writeln("");
-        term?.write(matches.join("  "));
-        term?.select(0, posY, matches[0].length);
-
-        // Update command with selected match
-        const newCommand = `${cmd} ${matches[0]}`;
-        currentCommand.current = newCommand;
-        term?.writeln("");
-        term?.write("\r\x1b[K$ " + newCommand);
-      } else {
-        // Subsequent tab presses - cycle through matches
-        const { matches, linePositionY } = completionState.current;
-        completionState.current.currentIndex =
-          (completionState.current.currentIndex + 1) % matches.length;
-
-        // Calculate position of current match
-        const currentMatch = matches[completionState.current.currentIndex];
-        const prevMatches = matches.slice(0, completionState.current.currentIndex);
-        const matchStart = prevMatches.reduce((acc, m) => acc + m.length + 2, 0); // + 2 for the two spaces
-
-        term?.select(matchStart, linePositionY, currentMatch.length);
-
-        // Update command with selected match
-        const newCommand = `${cmd} ${currentMatch}`;
-        currentCommand.current = newCommand;
-        term?.write("\r\x1b[K$ " + newCommand);
-      }
-    }
-  };
+    },
+    [currentPath, term, completionState]
+  );
 
   // Initialize terminal
   useEffect(() => {
@@ -593,7 +596,7 @@ export default function Terminal() {
       disposable.dispose();
       window.removeEventListener("resize", handleResize);
     };
-  }, [term]);
+  }, [term, handleTabCompletion]);
 
   return (
     <div

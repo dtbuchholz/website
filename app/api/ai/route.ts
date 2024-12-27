@@ -115,8 +115,6 @@ export async function POST(req: Request) {
   try {
     // Read file content
     let content: string;
-    console.log("path", path);
-    console.log("before if");
     if (type === "about") {
       // Special case for about page
       const aboutPath = join(APP_ROOT, "about/page.tsx");

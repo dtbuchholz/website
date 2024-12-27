@@ -1,8 +1,9 @@
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { formatDate, getBlogPosts } from "app/blog/utils";
 import { MDX } from "app/components/mdx";
 import { baseUrl } from "app/sitemap";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 type PageParams = {
   slug: string;
@@ -93,9 +94,9 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
           )}
         </p>
         <div className="flex justify-end items-center text-sm">
-          <a href="/blog" className="back-to-home">
+          <Link href="/blog" className="back-to-home">
             ← Back to posts
-          </a>
+          </Link>
         </div>
       </div>
       <article className="prose w-full">

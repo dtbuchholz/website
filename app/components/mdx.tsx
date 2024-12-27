@@ -55,7 +55,7 @@ function Link(props: LinkProps): React.JSX.Element {
 }
 
 function RoundedImage(props: ImageProps) {
-  return <Image className="rounded-lg" {...props} />;
+  return <Image className="rounded-lg" {...props} alt={props.alt} />;
 }
 
 function Code({ children, ...props }: CodeProps) {
