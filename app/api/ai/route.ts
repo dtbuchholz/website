@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const TERMINAL_ROOT = join(process.cwd(), "app", "vfs");
+const APP_ROOT = join(process.cwd(), "app");
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -12,26 +13,55 @@ const openai = new OpenAI({
 
 type LlmRequest = {
   path: string;
-  type: "summarize" | "ask";
+  type: "about" | "ask" | "summarize";
   question?: string;
 };
 
-async function typeHandler(type: "summarize" | "ask", content: string, question?: string) {
-  if (type === "summarize") {
-    return summarize(content);
+async function typeHandler(
+  type: "about" | "ask" | "summarize",
+  content: string,
+  question?: string
+) {
+  if (type === "about") {
+    return summarizeAbout(content);
   }
   if (type === "ask" && question) {
     return ask(content, question);
+  }
+  if (type === "summarize") {
+    return summarize(content);
   }
 
   return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 }
 
+async function summarizeAbout(content: string) {
+  const systemMessage =
+    "You are a helpful assistant that summarizes an about page in plain English. " +
+    "You MUST NOT make up information that is not provided in the text." +
+    "You MUST only consider the content in the variable `headerInfo` and `timelineEvents`. " +
+    "You MUST describe the author in biographical terms. " +
+    "For example, `<name> is a software engineer...` or `<name> spent time doing...`";
+  const prompt = `Please explain the about page and what it describes about the author:\n\n${content}`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: prompt },
+    ],
+    max_tokens: 150,
+    temperature: 0.7,
+  });
+
+  return NextResponse.json({ summary: completion.choices[0].message.content });
+}
+
 async function summarize(content: string) {
   // Generate summary using OpenAI
-  console.log("Starting summarization...");
-  const systemMessage =
-    "You are a helpful assistant that summarizes text content concisely. You MUST NOT make up information that is not provided in the text.";
+  const systemMessage = `
+    You are a helpful assistant that summarizes text content concisely. 
+    You MUST NOT make up information that is not provided in the text.`;
   const prompt = `Please summarize the following text:\n\n${content}`;
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -48,14 +78,12 @@ async function summarize(content: string) {
     max_tokens: 150,
     temperature: 0.7,
   });
-  console.log("Summarization completed");
 
   const summary = completion.choices[0].message.content;
   return NextResponse.json({ summary });
 }
 
 async function ask(content: string, question: string) {
-  console.log("Starting question answering...");
   const prompt = `Question: ${question}`;
   const systemMessage = `
     You are a helpful assistant that answers questions about text content. 
@@ -85,12 +113,19 @@ export async function POST(req: Request) {
 
   try {
     // Read file content
-    const normalizedPath = join(TERMINAL_ROOT, path).replace(/\\/g, "/");
-    if (!normalizedPath.startsWith(TERMINAL_ROOT)) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    let content;
+    if (type === "about") {
+      // Special case for about page
+      const aboutPath = join(APP_ROOT, "about/page.tsx");
+      content = await readFile(aboutPath, "utf-8");
+    } else {
+      // Normal VFS path
+      const normalizedPath = join(TERMINAL_ROOT, path).replace(/\\/g, "/");
+      if (!normalizedPath.startsWith(TERMINAL_ROOT)) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      }
+      content = await readFile(normalizedPath, "utf-8");
     }
-    const content = await readFile(normalizedPath, "utf-8");
-
     return typeHandler(type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

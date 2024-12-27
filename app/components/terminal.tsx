@@ -88,9 +88,16 @@ const commands: Record<string, Command> = {
       }
     },
   },
+  about: {
+    name: "about",
+    description: "Learn more about Dan",
+    execute: async (_, __, term) => {
+      return handleAbout(term);
+    },
+  },
   ai: {
     name: "ai",
-    description: "Summarize or ask questions about various files",
+    description: "Get content summaries or ask questions",
     execute: async (args, context, term) => {
       const [subcommand, path] = args;
 
@@ -102,7 +109,7 @@ const commands: Record<string, Command> = {
           const question = args.slice(2).join(" ");
           return handleAsk(path, question, context, term);
         default:
-          return "Usage: ai [sum|ask] <path> [question]";
+          return "Usage: ai [ask|summarize] <path> [question]";
       }
     },
   },
@@ -151,6 +158,27 @@ const commands: Record<string, Command> = {
   },
 };
 
+async function handleAbout(term: XTerm) {
+  try {
+    term.write("Analyzing about page...\r\n");
+    const response = await fetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify({ type: "about" }),
+    });
+
+    if (!response.ok) throw new Error("Failed to analyze about page");
+    const { summary: rawSummary } = await response.json();
+    const summary = rawSummary
+      .split("\n")
+      .map((para) => para.trim().replace(/\s+/g, " "))
+      .filter(Boolean)
+      .join("\r\n\r\n");
+    return summary;
+  } catch (error) {
+    return `Error: ${error.message}`;
+  }
+}
+
 async function handleSummarize(path: string, context: CommandContext, term: XTerm) {
   if (!path || path.trim() === "") {
     return "Usage: ai summarize <path> (alias: 'sum')";
@@ -169,7 +197,12 @@ async function handleSummarize(path: string, context: CommandContext, term: XTer
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      term.write(response.summary);
+      const summary = response.summary
+        .split("\n")
+        .map((para) => para.trim().replace(/\s+/g, " "))
+        .filter(Boolean)
+        .join("\r\n\r\n");
+      term.write(summary);
     }
 
     return "";
@@ -193,7 +226,12 @@ async function handleAsk(path: string, question: string, context: CommandContext
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      term.write(response.answer);
+      const answer = response.answer
+        .split("\n")
+        .map((para) => para.trim().replace(/\s+/g, " "))
+        .filter(Boolean)
+        .join("\r\n\r\n");
+      term.write(answer);
     }
     return "";
   } catch (error) {
