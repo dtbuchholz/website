@@ -21,7 +21,7 @@
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
     "geist": "1.2.2",
-    "next": "canary",
+    "next": "^14.2.22",
     "next-mdx-remote": "^4.4.1",
     "openai": "^4.77.0",
     "postcss": "^8.4.35",

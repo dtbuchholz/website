@@ -5,7 +5,6 @@ import OpenAI from "openai";
 import { FsItem } from "../fs/route";
 
 const APP_ROOT = join(process.cwd(), "app");
-const SERVER_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -124,7 +123,10 @@ export async function POST(req: Request) {
       content = await readFile(aboutPath, "utf-8");
     } else {
       // Make request to fs api
-      const response = await fetch(`${SERVER_API_BASE_URL}/api/fs?path=${path}`);
+      const url = new URL(req.url);
+      const fsApiUrl = new URL("/api/fs", url.origin);
+      fsApiUrl.searchParams.set("path", path);
+      const response = await fetch(fsApiUrl);
       if (!response.ok) throw new Error("File or directory not found");
 
       const data = (await response.json()) as FsItem[];
