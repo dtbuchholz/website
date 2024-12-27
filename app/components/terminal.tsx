@@ -220,12 +220,11 @@ export default function Terminal() {
     const terminal = new XTerm({
       cursorBlink: true,
       cursorInactiveStyle: "block",
-      // fontFamily: "Fira Code",
       fontSize: 15,
       lineHeight: 1.2,
       theme: {
-        background: "#000000",
-        foreground: "#ffffff",
+        background: "#222c3d", // --sh-color-dark
+        foreground: "#e0e1dd", // --sh-color-lightest
       },
     });
 

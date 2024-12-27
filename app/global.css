@@ -1,10 +1,5 @@
 @import "tailwindcss";
-@import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
-@font-face {
-  font-family: "Geist-Mono-Regular";
-  src: url("https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/996b00fb-4b7a-403d-8da2-ce2225450681.woff2")
-    format("woff2");
-}
+@import url(https://fonts.cdnfonts.com/css/jetbrains-mono-2);
 
 ::selection {
   background-color: #47a3f3;
@@ -21,8 +16,29 @@
   --sh-jsxliterals: #6266d1;
   --sh-property: #e25a1c;
   --sh-entity: #e25a1c;
+
+  /* Colors */
+  --sh-color-darkest: #0d1b2a;
+  --sh-color-dark: #222c3d;
+  --sh-color-light: #415a77;
+  --sh-color-lighter: #778da9;
+  --sh-color-lightest: #e0e1dd;
+
+  --sh-background: var(--sh-color-darkest);
+  --sh-foreground: var(--sh-color-lightest);
   --sh-secondary: var(--color-neutral-900);
-  --font-family-mono: "Geist-Mono-Regular", Consolas, monaco, monospace;
+  --color-neutral-800: var(--sh-color-dark);
+  --font-family: "JetBrains Mono", Consolas, monaco, monospace;
+
+  --font-weight-normal: 300;
+  --font-weight-medium: 600;
+  --font-weight-bold: 800;
+
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  font-style: normal;
+  background-color: var(--sh-background);
+  color: var(--sh-foreground);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,11 +55,6 @@
 }
 
 html {
-  min-width: 360px;
-}
-html,
-body {
-  font-family: var(--font-family-mono);
   min-width: 360px;
 }
 
@@ -85,7 +96,7 @@ section a {
 
 code {
   @apply px-1 py-0.5 rounded-lg;
-  /* font-family: "Fira Code", monospace; */
+  font-weight: var(--font-weight-medium);
   font-size: 94%;
 }
 
