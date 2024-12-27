@@ -29,7 +29,9 @@ const commands: Record<string, Command> = {
     description: "List all available commands",
     execute: () => {
       return Object.entries(commands)
+        .filter(([name]) => name !== "help")
         .map(([name, cmd]) => `${name.padEnd(8)} - ${cmd.description}`)
+        .sort((a: string, b: string) => a.localeCompare(b))
         .join("\r\n");
     },
   },
@@ -154,7 +156,7 @@ export default function Terminal() {
       return contents
         .filter(({ name }) => name.toLowerCase().startsWith(searchTerm.toLowerCase()))
         .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
-        .sort((a: string, b: string) => a.localeCompare(b)); // Sort alphabetically
+        .sort((a: string, b: string) => a.localeCompare(b));
     } catch {
       return [];
     }
