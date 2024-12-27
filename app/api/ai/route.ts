@@ -2,8 +2,8 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { FsItem } from "../fs/route";
 
-const TERMINAL_ROOT = join(process.cwd(), "app", "vfs");
 const APP_ROOT = join(process.cwd(), "app");
 
 // Initialize OpenAI client
@@ -61,7 +61,8 @@ async function summarize(content: string) {
   // Generate summary using OpenAI
   const systemMessage = `
     You are a helpful assistant that summarizes text content concisely. 
-    You MUST NOT make up information that is not provided in the text.`;
+    You MUST NOT make up information that is not provided in the text.
+    `;
   const prompt = `Please summarize the following text:\n\n${content}`;
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -113,18 +114,20 @@ export async function POST(req: Request) {
 
   try {
     // Read file content
-    let content;
+    let content: string;
+    console.log("path", path);
+    console.log("before if");
     if (type === "about") {
       // Special case for about page
       const aboutPath = join(APP_ROOT, "about/page.tsx");
       content = await readFile(aboutPath, "utf-8");
     } else {
-      // Normal VFS path
-      const normalizedPath = join(TERMINAL_ROOT, path).replace(/\\/g, "/");
-      if (!normalizedPath.startsWith(TERMINAL_ROOT)) {
-        return NextResponse.json({ error: "Access denied" }, { status: 403 });
-      }
-      content = await readFile(normalizedPath, "utf-8");
+      // Make request to fs api
+      const response = await fetch(`http://localhost:3000/api/fs?path=${path}`);
+      const data = (await response.json()) as FsItem[];
+      const filename = path.split("/").pop();
+      console.log("data", data);
+      content = data.find((item) => item.name === filename)?.fileContents || "";
     }
     return typeHandler(type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

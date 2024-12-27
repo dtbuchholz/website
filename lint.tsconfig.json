@@ -1,12 +1,5 @@
 {
-  "include": [
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "app/**/*.js",
-    "app/**/*.jsx",
-    "./env.d.ts",
-    "./next.config.js"
-  ],
+  "include": ["app/**/*", "scripts/*"],
   "compilerOptions": {
     "target": "ES2020",
     "module": "ES2022",

@@ -60,7 +60,7 @@ const commands: Record<string, Command> = {
       }
 
       try {
-        let fullPath;
+        let fullPath: string;
         if (currentPath.length > 0) {
           // In a subdirectory - join paths
           fullPath = `${currentPath.join("/")}/${path}`;
@@ -98,16 +98,24 @@ const commands: Record<string, Command> = {
   ai: {
     name: "ai",
     description: "Get content summaries or ask questions",
-    execute: async (args, context, term) => {
+    execute: async (args, { currentPath }, term) => {
       const [subcommand, path] = args;
+      let fullPath: string;
+      if (currentPath.length > 0) {
+        // In a subdirectory - join paths
+        fullPath = `${currentPath.join("/")}/${path}`;
+      } else {
+        // At root - use path directly
+        fullPath = path;
+      }
 
       switch (subcommand) {
         case "sum":
         case "summarize":
-          return handleSummarize(path, context, term);
+          return handleSummarize(fullPath, term);
         case "ask":
           const question = args.slice(2).join(" ");
-          return handleAsk(path, question, context, term);
+          return handleAsk(fullPath, question, term);
         default:
           return "Usage: ai [ask|summarize] <path> [question]";
       }
@@ -126,7 +134,7 @@ const commands: Record<string, Command> = {
     name: "ls",
     description: "List directory contents",
     execute: async (args, { currentPath }) => {
-      let path;
+      let path: string;
       if (!args[0]) {
         // No args - list current directory
         path = currentPath.join("/");
@@ -179,7 +187,7 @@ async function handleAbout(term: XTerm) {
   }
 }
 
-async function handleSummarize(path: string, context: CommandContext, term: XTerm) {
+async function handleSummarize(path: string, term: XTerm) {
   if (!path || path.trim() === "") {
     return "Usage: ai summarize <path> (alias: 'sum')";
   }
@@ -211,7 +219,7 @@ async function handleSummarize(path: string, context: CommandContext, term: XTer
   }
 }
 
-async function handleAsk(path: string, question: string, context: CommandContext, term: XTerm) {
+async function handleAsk(path: string, question: string, term: XTerm) {
   if (!question || question.trim() === "" || !path || path.trim() === "") {
     return "Usage: ai ask <path> <question>";
   }
