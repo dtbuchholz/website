@@ -6,10 +6,9 @@ import { FsItem } from "../fs/route";
 
 const APP_ROOT = join(process.cwd(), "app");
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 type LlmRequest = {
   path: string;
@@ -18,24 +17,25 @@ type LlmRequest = {
 };
 
 async function typeHandler(
+  client: OpenAI,
   type: "about" | "ask" | "summarize",
   content: string,
   question?: string
 ) {
   if (type === "about") {
-    return summarizeAbout(content);
+    return summarizeAbout(client, content);
   }
   if (type === "ask" && question) {
-    return ask(content, question);
+    return ask(client, content, question);
   }
   if (type === "summarize") {
-    return summarize(content);
+    return summarize(client, content);
   }
 
   return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 }
 
-async function summarizeAbout(content: string) {
+async function summarizeAbout(client: OpenAI, content: string) {
   const systemMessage =
     "You are a helpful assistant that summarizes an about page in plain English. " +
     "You MUST NOT make up information that is not provided in the text." +
@@ -44,7 +44,7 @@ async function summarizeAbout(content: string) {
     "For example, `<name> is a software engineer...` or `<name> spent time doing...`";
   const prompt = `Please explain the about page and what it describes about the author:\n\n${content}`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await client.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
       { role: "system", content: systemMessage },
@@ -57,14 +57,14 @@ async function summarizeAbout(content: string) {
   return NextResponse.json({ summary: completion.choices[0].message.content });
 }
 
-async function summarize(content: string) {
+async function summarize(client: OpenAI, content: string) {
   // Generate summary using OpenAI
   const systemMessage = `
     You are a helpful assistant that summarizes text content concisely. 
     You MUST NOT make up information that is not provided in the text.
     `;
   const prompt = `Please summarize the following text:\n\n${content}`;
-  const completion = await openai.chat.completions.create({
+  const completion = await client.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
       {
@@ -84,7 +84,7 @@ async function summarize(content: string) {
   return NextResponse.json({ summary });
 }
 
-async function ask(content: string, question: string) {
+async function ask(client: OpenAI, content: string, question: string) {
   const prompt = `Question: ${question}`;
   const systemMessage = `
     You are a helpful assistant that answers questions about text content. 
@@ -94,7 +94,7 @@ async function ask(content: string, question: string) {
     The relevant text is provided below:
     ${content}
     `;
-  const completion = await openai.chat.completions.create({
+  const completion = await client.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
       {
@@ -110,6 +110,7 @@ async function ask(content: string, question: string) {
 }
 
 export async function POST(req: Request) {
+  const client = getOpenAIClient();
   const { path, type, question } = (await req.json()) as LlmRequest;
 
   try {
@@ -134,7 +135,7 @@ export async function POST(req: Request) {
         .map((item) => `# Filename: ${item.name}\n${item.fileContents}`)
         .join("\n");
     }
-    return typeHandler(type, content, question);
+    return typeHandler(client, type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Full error object:", error);
