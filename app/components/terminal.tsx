@@ -334,8 +334,8 @@ export default function Terminal() {
       const code = data.charCodeAt(0);
       const isArrowKey = code === 27; // ESC key, which prefixes arrow keys
 
+      // Tab key
       if (data === "\t") {
-        // Tab key
         const command = currentCommand.current.trim();
         if (!command) return;
         handleTabCompletion(command);
@@ -345,6 +345,7 @@ export default function Terminal() {
         completionState.current = null;
       }
 
+      // Arrow keys
       if (isArrowKey) {
         const arrowKey = data.slice(1);
         if (arrowKey === "[C") {
@@ -364,8 +365,8 @@ export default function Terminal() {
         return;
       }
 
+      // Enter key
       if (data === "\r") {
-        // Enter key
         const command = currentCommand.current.trim();
         term.writeln("");
 
@@ -394,8 +395,10 @@ export default function Terminal() {
 
         currentCommand.current = "";
         cursorOffset.current = 0;
-      } else if (data === "\u007F") {
-        // Backspace
+      }
+
+      // Backspace key
+      if (data === "\u007F") {
         if (currentCommand.current.length > 0 && term.buffer.active.cursorX > 2) {
           const pos = currentCommand.current.length - cursorOffset.current;
           if (pos > 0) {
@@ -415,8 +418,10 @@ export default function Terminal() {
             term.write("\b".repeat(cursorOffset.current));
           }
         }
-      } else if (data === "\u0017" || data === "\u001b\u007F" || data === "\u0008") {
-        // Word delete
+      }
+
+      // Word delete
+      if (data === "\u0017" || data === "\u001b\u007F" || data === "\u0008") {
         if (currentCommand.current.length > 0) {
           const pos = currentCommand.current.length - cursorOffset.current;
           let newPos = pos;
@@ -442,19 +447,27 @@ export default function Terminal() {
             term.write("\b".repeat(cursorOffset.current));
           }
         }
-      } else if (!isArrowKey && code >= 32 && code < 127) {
-        // Printable characters
+      }
+
+      // Printable characters
+      if (!isArrowKey && code >= 32 && code < 127) {
         const pos = currentCommand.current.length - cursorOffset.current;
-        // Insert character at cursor position
         currentCommand.current =
           currentCommand.current.slice(0, pos) + data + currentCommand.current.slice(pos);
 
-        // Move cursor to start of command (after prompt)
-        term.write("\b".repeat(pos));
+        // Clear from cursor to end of screen
+        term.write("\x1b[K");
+
         // Write the updated command
-        term.write(currentCommand.current);
-        // Restore cursor position
-        term.write("\b".repeat(cursorOffset.current));
+        term.write(data);
+
+        // If there's more text after the cursor, rewrite it
+        if (cursorOffset.current > 0) {
+          const remainingText = currentCommand.current.slice(pos + 1);
+          term.write(remainingText);
+          // Move cursor back to insertion point
+          term.write("\b".repeat(remainingText.length));
+        }
       }
     });
 
