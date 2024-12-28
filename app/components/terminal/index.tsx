@@ -76,6 +76,7 @@ export default function Terminal() {
     term.writeln("Welcome to danbuchholz.com");
     term.writeln("Type 'help' for available commands\n");
     term.write("$ ");
+    term.focus();
 
     // Handle input
     const keyHandler = createKeyHandlers({
