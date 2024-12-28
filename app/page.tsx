@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { LoadingSpinner } from "app/components/loading";
 import { BlogPosts } from "app/components/posts";
 
-const Terminal = dynamic(() => import("app/components/terminal"), {
+const Terminal = dynamic(() => import("app/components/terminal/index"), {
   ssr: false,
   loading: (props: DynamicOptionsLoadingProps) => {
     if (props.pastDelay && props.isLoading) {

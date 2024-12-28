@@ -13,6 +13,47 @@ export type FsItem = {
   fileContents: string | null;
 };
 
+async function getFileItem(path: string, name?: string): Promise<FsItem> {
+  const fileName = name || path.split("/").pop() || "";
+  return {
+    name: fileName,
+    type: "file",
+    extension: extname(fileName),
+    fileContents: await readFile(path, "utf-8"),
+  };
+}
+
+async function getDirectoryContents(path: string, isRoot = false): Promise<FsItem[]> {
+  const contents = await readdir(path);
+  const items = await Promise.all(
+    contents.map(async (name) => {
+      const fullPath = join(path, name);
+      const itemStats = await stat(fullPath);
+      const type = itemStats.isDirectory() ? "directory" : "file";
+      const extension = extname(name);
+      const fileContents = type === "file" ? await readFile(fullPath, "utf-8") : null;
+      return {
+        name,
+        type,
+        extension,
+        fileContents,
+      };
+    })
+  );
+
+  // Add virtual blog directory at root level
+  if (isRoot) {
+    items.push({
+      name: "blog",
+      type: "directory",
+      extension: "",
+      fileContents: "",
+    });
+  }
+
+  return items;
+}
+
 export async function GET(request: Request): Promise<NextResponse<FsItem[] | { error: string }>> {
   const { searchParams } = new URL(request.url);
   let requestedPath = searchParams.get("path") || "/";
@@ -34,34 +75,13 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | { e
       const stats = await stat(actualPath);
 
       if (stats.isDirectory()) {
-        const contents = await readdir(actualPath);
-        const items = await Promise.all(
-          contents.map(async (name) => {
-            const fullPath = join(actualPath, name);
-            const itemStats = await stat(fullPath);
-            const type = itemStats.isDirectory() ? "directory" : "file";
-            const extension = extname(name);
-            const fileContents = type === "file" ? await readFile(fullPath, "utf-8") : null;
-            return {
-              name,
-              type,
-              extension,
-              fileContents,
-            };
-          })
-        );
+        const items = await getDirectoryContents(actualPath);
         return NextResponse.json(items);
       }
 
       // Handle single file
-      return NextResponse.json([
-        {
-          name: requestedPath.split("/").pop() || "",
-          type: "file",
-          extension: extname(requestedPath),
-          fileContents: await readFile(actualPath, "utf-8"),
-        },
-      ]);
+      const fileItem = await getFileItem(actualPath);
+      return NextResponse.json([fileItem]);
     }
 
     // Handle regular paths
@@ -74,45 +94,13 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | { e
     const stats = await stat(normalizedPath);
 
     if (stats.isDirectory()) {
-      const contents = await readdir(normalizedPath);
-      const items = await Promise.all(
-        contents.map(async (name) => {
-          const fullPath = join(normalizedPath, name);
-          const itemStats = await stat(fullPath);
-          const type = itemStats.isDirectory() ? "directory" : "file";
-          const extension = extname(name);
-          const fileContents = type === "file" ? await readFile(fullPath, "utf-8") : null;
-          return {
-            name,
-            type,
-            extension,
-            fileContents,
-          };
-        })
-      );
-
-      // Add virtual blog directory at root
-      if (requestedPath === "/") {
-        items.push({
-          name: "blog",
-          type: "directory",
-          extension: "",
-          fileContents: "",
-        });
-      }
-
+      const items = await getDirectoryContents(normalizedPath, requestedPath === "/");
       return NextResponse.json(items);
     }
 
     // Handle single file
-    return NextResponse.json([
-      {
-        name: requestedPath.split("/").pop() || "",
-        type: "file",
-        extension: extname(requestedPath),
-        fileContents: await readFile(normalizedPath, "utf-8"),
-      },
-    ]);
+    const fileItem = await getFileItem(normalizedPath);
+    return NextResponse.json([fileItem]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: `Directory not found: ${error.message}` }, { status: 404 });

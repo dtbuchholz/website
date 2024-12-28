@@ -147,8 +147,7 @@ export async function POST(req: Request) {
     return typeHandler(client, type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Full error object:", error);
-    console.error("Error stack:", error.stack);
+    console.error("Error handling ai request:", error);
     return NextResponse.json(
       {
         error: `Failed to run inference: ${error.message}`,
