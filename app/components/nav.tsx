@@ -21,7 +21,7 @@ export function Navbar() {
             <div className="flex flex-row space-x-0">
               <Link
                 href="/"
-                className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center align-middle relative py-1 ml-0 pl-0 pr-2 m-1 font-bold text-lg leading-none"
+                className="flex items-center align-middle relative py-1 ml-0 pl-0 pr-2 m-1 font-bold text-lg leading-none"
               >
                 dan buchholz
               </Link>
@@ -30,16 +30,16 @@ export function Navbar() {
                   <Link
                     key={path}
                     href={path}
-                    className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center align-middle relative py-1 px-2 m-1"
+                    className="transition-all relative flex items-center py-1 px-2 m-1 dark:text-neutral-300 dark:hover:text-neutral-100" // after:absolute after:bottom-0 after:left-0 after:h-[0.5px] after:w-0 hover:after:w-full after:transition-all after:bg-current
                   >
-                    {name}
+                    /{name}
                   </Link>
                 );
               })}
             </div>
             <div className="flex items-center">
               <a
-                className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center align-middle relative py-1 px-2 m-1"
+                className="transition-all dark:text-neutral-300 dark:hover:text-neutral-100 flex items-center align-middle relative py-1 px-2 m-1"
                 href="https://github.com/dtbuchholz"
                 target="_blank"
                 rel="noreferrer"
@@ -56,7 +56,7 @@ export function Navbar() {
                 </svg>
               </a>
               <a
-                className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex align-middle relative py-1 px-2 m-1"
+                className="transition-all dark:text-neutral-300 dark:hover:text-neutral-100 flex align-middle relative py-1 px-2 m-1"
                 href="https://twitter.com/dtbuchholz"
                 target="_blank"
                 rel="noreferrer"

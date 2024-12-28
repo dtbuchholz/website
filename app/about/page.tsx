@@ -32,19 +32,27 @@ const timelineEvents: TimelineEvent[] = [
     content: (
       <>
         I&apos;ve been focused on both growth and engineering at{" "}
-        <NextLink href="https://linktr.ee/textileio">Textile</NextLink>. We build web3 native
-        storage solutions. This started with{" "}
-        <NextLink href="https://docs.tableland.xyz">Tableland</NextLink>, which is a decentralized
-        SQLite database that gives you a way to write SQL onchain (smart contracts), materialized by
-        an offchain network of validators.
+        <NextLink href="https://linktr.ee/textileio" target="_blank" rel="noreferrer">
+          Textile
+        </NextLink>
+        . We build web3 native storage solutions. This started with{" "}
+        <NextLink href="https://docs.tableland.xyz" target="_blank" rel="noreferrer">
+          Tableland
+        </NextLink>
+        , which is a decentralized SQLite database that gives you a way to write SQL onchain (smart
+        contracts), materialized by an offchain network of validators.
         <br />
         <br />
         Now, I&apos;m primarily focused on building a data storage L2 chain called{" "}
-        <NextLink href="https://basin.textile.io/">Basin</NextLink>. Think of it as a hot data layer
-        for decentralized applications with mix across S3 and Cloudflare functionality. Fast
-        finality, large scale data (GiBs per transaction)—all programmable onchain within
-        horizontally scalable subnets and custom consensus. A lot of Rust, Solidity (hand rolling
-        CBOR encoding/decoding...), and SDKs in JS/TS.
+        <NextLink href="https://basin.textile.io/" target="_blank" rel="noreferrer">
+          Basin
+        </NextLink>
+        . Think of it as a hot data layer for decentralized applications with mix across S3 and
+        Cloudflare functionality. Fast finality, large scale data (GiBs per transaction)—all
+        programmable onchain within horizontally scalable subnets and custom consensus. A lot of
+        Rust, Solidity (hand rolling CBOR encoding/decoding...), and SDKs in JS/TS. horizontally
+        scalable subnets and custom consensus. A lot of Rust, Solidity (hand rolling CBOR
+        encoding/decoding...), and SDKs in JS/TS.
       </>
     ),
   },
@@ -53,11 +61,21 @@ const timelineEvents: TimelineEvent[] = [
     title: "Fellow at Ethereum Foundation",
     content: (
       <>
-        I spent ~6 months as a Core Developer where I contributed to an Ethereum research
-        team&apos;s codebase, focused on consensus clients and proof-of-stake called{" "}
-        <NextLink href="https://github.com/ralexstokes/ethereum-consensus">
-          <code>ethereum-consensus</code>
+        I spent ~6 months as a Core Developer (funded by the{" "}
+        <NextLink href="https://ethereum.foundation/" target="_blank" rel="noreferrer">
+          EF
         </NextLink>
+        ) where I contributed to an Ethereum research team&apos;s codebase, focused on consensus
+        clients and proof-of-stake called{" "}
+        <code>
+          <NextLink
+            href="https://github.com/ralexstokes/ethereum-consensus"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ethereum-consensus
+          </NextLink>
+        </code>
         , written in Rust. Around the same time, I was building small apps that interacted with
         onchain mechanisms or external APIs, like reading price data off of CEXs or general prices
         APIs—albeit, these were extremely rudimentary.
@@ -70,7 +88,7 @@ const timelineEvents: TimelineEvent[] = [
     content: (
       <>
         A logistics SaaS startup called{" "}
-        <NextLink href="https://en.wikipedia.org/wiki/University_of_Illinois_Urbana-Champaign">
+        <NextLink href="https://www.fourkites.com" target="_blank" rel="noreferrer">
           FourKites
         </NextLink>{" "}
         hired me in operations, but I quickly moved into sales engineering. We built a platform for
@@ -87,7 +105,11 @@ const timelineEvents: TimelineEvent[] = [
     content: (
       <>
         I graduated from the{" "}
-        <NextLink href="https://en.wikipedia.org/wiki/University_of_Illinois_Urbana-Champaign">
+        <NextLink
+          href="https://en.wikipedia.org/wiki/University_of_Illinois_Urbana-Champaign"
+          target="_blank"
+          rel="noreferrer"
+        >
           University of Illinois at Urbana-Champaign
         </NextLink>{" "}
         with a B.S. in Systems Engineering and (nearly) a minor in Electrical Engineering. I
@@ -105,7 +127,7 @@ const Timeline = ({ events }: { events: TimelineEvent[] }) => (
         <div className="absolute w-3 h-3 bg-neutral-200 dark:bg-neutral-800 rounded-full -left-[7px] font-semibold"></div>
         <time className="text-sm text-neutral-600 dark:text-neutral-400">{event.year}</time>
         <h3 className="font-medium mt-2">{event.title}</h3>
-        <p className="mt-2 text-neutral-700 dark:text-neutral-300">{event.content}</p>
+        <p className="mt-2">{event.content}</p>
       </div>
     ))}
   </div>

@@ -5,6 +5,11 @@
   background-color: #47a3f3;
   color: #fefefe;
 }
+@layer theme {
+  @theme {
+    --default-transition-duration: 200ms;
+  }
+}
 
 :root {
   --sh-class: #2d5e9d;
@@ -101,17 +106,18 @@ code {
   font-size: 94%;
 }
 
-.prose pre code {
+pre code {
   @apply p-0;
   border: initial;
   line-height: 1.5;
 }
 .prose code:not(pre code),
+code,
 .prose pre {
   background-color: var(--sh-secondary);
 }
 
-.prose code span {
+code span {
   @apply font-medium;
 }
 

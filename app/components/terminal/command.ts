@@ -77,7 +77,7 @@ export const commands: Record<string, Command> = {
   },
   about: {
     name: "about",
-    description: "Learn more about Dan",
+    description: "Learn more about me",
     execute: async (_, __, term) => {
       return handleAbout(term);
     },
