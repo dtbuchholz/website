@@ -58,6 +58,9 @@ async function summarizeAbout(client: OpenAI, content: string) {
 }
 
 async function summarize(client: OpenAI, content: string) {
+  if (!content) {
+    return NextResponse.json({ summary: "No content found" });
+  }
   // Generate summary using OpenAI
   const systemMessage = `
     You are a helpful assistant that summarizes text content concisely. 
@@ -85,6 +88,9 @@ async function summarize(client: OpenAI, content: string) {
 }
 
 async function ask(client: OpenAI, content: string, question: string) {
+  if (!content) {
+    return NextResponse.json({ answer: "No content found" });
+  }
   const prompt = `Question: ${question}`;
   const systemMessage = `
     You are a helpful assistant that answers questions about text content. 

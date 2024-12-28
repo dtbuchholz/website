@@ -15,7 +15,10 @@ export type FsItem = {
 
 export async function GET(request: Request): Promise<NextResponse<FsItem[] | { error: string }>> {
   const { searchParams } = new URL(request.url);
-  const requestedPath = searchParams.get("path") || "/";
+  let requestedPath = searchParams.get("path") || "/";
+  // Normalize path: remove trailing slash unless it's root
+  requestedPath = requestedPath === "/" ? "/" : requestedPath.replace(/\/$/, "");
+
   try {
     // Handle virtual paths
     if (/^\/?(blog\/?)/i.test(requestedPath)) {
