@@ -132,7 +132,10 @@ export async function POST(req: Request) {
       const fsApiUrl = new URL("/api/fs", url.origin);
       fsApiUrl.searchParams.set("path", path);
       const response = await fetch(fsApiUrl);
-      if (!response.ok) throw new Error("File or directory not found");
+      if (!response.ok)
+        throw new Error(
+          `Error fetching file or directory: ${response.statusText}, ${response.body}, ${fsApiUrl}`
+        );
 
       const data = (await response.json()) as FsItem[];
       // Join all the file contents
