@@ -8,7 +8,7 @@ import "@xterm/xterm/css/xterm.css";
 
 import { commands } from "./command";
 import { CompletionState, createTabCompletionHandler, getCompletions } from "./completion";
-import { createKeyHandlers } from "./keypress";
+import { CommandHistory, createKeyHandlers } from "./keypress";
 
 export default function Terminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -17,6 +17,8 @@ export default function Terminal() {
   const cursorOffset = useRef(0); // Position from the end of the command
   const currentPath = useRef<string[]>([]); // Initialize empty path array
   const completionState = useRef<CompletionState | null>(null);
+  const commandHistory = useRef<CommandHistory>(new CommandHistory(100));
+  const historyIndex = useRef<number>(0);
 
   const handleTabCompletion = useCallback(
     async (command: string) => {
@@ -85,6 +87,8 @@ export default function Terminal() {
       cursorOffset,
       currentPath,
       completionState,
+      commandHistory,
+      historyIndex,
       commands,
       handleTabCompletion,
     });
@@ -95,13 +99,10 @@ export default function Terminal() {
     const handleResize = () => {
       fitAddon.fit();
     };
-
     term.onResize(handleResize);
-    window.addEventListener("resize", handleResize);
 
     return () => {
       disposable.dispose();
-      window.removeEventListener("resize", handleResize);
     };
   }, [term, handleTabCompletion]);
 

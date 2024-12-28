@@ -8,9 +8,45 @@ type KeyHandlerDeps = {
   cursorOffset: React.MutableRefObject<number>;
   currentPath: React.MutableRefObject<string[]>;
   completionState: React.MutableRefObject<CompletionState | null>;
+  commandHistory: React.MutableRefObject<CommandHistory>;
+  historyIndex: React.MutableRefObject<number>;
   commands: Record<string, Command>;
   handleTabCompletion: (command: string) => Promise<void>;
 };
+
+export class CommandHistory {
+  private history: string[] = [];
+  private maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.maxSize = maxSize;
+  }
+
+  add(command: string): void {
+    // Don't add if it's the same as the last command
+    if (this.history.length > 0 && this.history[this.history.length - 1] === command) {
+      return;
+    }
+    this.history.push(command);
+
+    // Remove oldest command if we exceed maxSize
+    if (this.history.length > this.maxSize) {
+      this.history.shift();
+    }
+  }
+
+  get(index: number): string {
+    return this.history[index];
+  }
+
+  get length(): number {
+    return this.history.length;
+  }
+
+  get all(): string[] {
+    return [...this.history];
+  }
+}
 
 export function createKeyHandlers(deps: KeyHandlerDeps) {
   const {
@@ -19,6 +55,8 @@ export function createKeyHandlers(deps: KeyHandlerDeps) {
     cursorOffset,
     currentPath,
     completionState,
+    commandHistory,
+    historyIndex,
     commands,
     handleTabCompletion,
   } = deps;
@@ -31,7 +69,36 @@ export function createKeyHandlers(deps: KeyHandlerDeps) {
 
   const handleArrowKeys = (data: string) => {
     const arrowKey = data.slice(1);
-    if (arrowKey === "[C") {
+    if (arrowKey === "[A") {
+      // Up arrow
+      if (commandHistory.current.length > 0) {
+        if (historyIndex.current > 0) {
+          historyIndex.current--;
+          const historicCommand = commandHistory.current.get(historyIndex.current);
+
+          // Clear current line
+          term.write("\r\x1b[K$ ");
+          term.write(historicCommand);
+          currentCommand.current = historicCommand;
+          cursorOffset.current = 0;
+        }
+      }
+    } else if (arrowKey === "[B") {
+      // Down arrow
+      if (historyIndex.current < commandHistory.current.length) {
+        historyIndex.current++;
+        const historicCommand =
+          historyIndex.current === commandHistory.current.length
+            ? ""
+            : commandHistory.current.get(historyIndex.current);
+
+        // Clear current line
+        term.write("\r\x1b[K$ ");
+        term.write(historicCommand);
+        currentCommand.current = historicCommand;
+        cursorOffset.current = 0;
+      }
+    } else if (arrowKey === "[C") {
       // Right arrow
       if (cursorOffset.current > 0) {
         cursorOffset.current--;
@@ -51,6 +118,11 @@ export function createKeyHandlers(deps: KeyHandlerDeps) {
     term.writeln("");
 
     if (command) {
+      // Add to history if it's not the same as the last command
+      commandHistory.current.add(command);
+      historyIndex.current = commandHistory.current.length;
+
+      // Execute command
       const [cmd, ...args] = command.split(" ");
       if (commands[cmd]) {
         const context = { currentPath: currentPath.current };
