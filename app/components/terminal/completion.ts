@@ -1,6 +1,6 @@
 import { Terminal as XTerm } from "@xterm/xterm";
 
-type CompletionState = {
+export type CompletionState = {
   matches: string[];
   currentIndex: number;
   originalInput: string;
