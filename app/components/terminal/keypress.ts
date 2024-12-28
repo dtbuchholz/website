@@ -154,11 +154,19 @@ export function createKeyHandlers(deps: KeyHandlerDeps) {
         currentCommand.current =
           currentCommand.current.slice(0, pos - 1) + currentCommand.current.slice(pos);
 
-        term.write("\b".repeat(pos));
-        term.write(" ".repeat(currentCommand.current.length + 1));
-        term.write("\b".repeat(currentCommand.current.length + 1));
-        term.write(currentCommand.current);
-        term.write("\b".repeat(cursorOffset.current));
+        // Move cursor back
+        term.write("\b");
+        if (cursorOffset.current > 0) {
+          // Write remaining text
+          term.write(currentCommand.current.slice(pos - 1));
+          // Add space to clear last character
+          term.write(" ");
+          // Move cursor back to position
+          term.write("\b".repeat(cursorOffset.current + 1));
+        } else {
+          // Just clear the last character
+          term.write(" \b");
+        }
       }
     }
   };
@@ -189,13 +197,15 @@ export function createKeyHandlers(deps: KeyHandlerDeps) {
     currentCommand.current =
       currentCommand.current.slice(0, pos) + data + currentCommand.current.slice(pos);
 
-    term.write("\x1b[K");
-    term.write(data);
-
+    // Only rewrite what's necessary
     if (cursorOffset.current > 0) {
-      const remainingText = currentCommand.current.slice(pos + 1);
-      term.write(remainingText);
-      term.write("\b".repeat(remainingText.length));
+      // Save cursor position
+      term.write(data + currentCommand.current.slice(pos + 1));
+      // Move cursor back to correct position
+      term.write("\b".repeat(cursorOffset.current));
+    } else {
+      // If we're at the end, just write the character
+      term.write(data);
     }
   };
 
