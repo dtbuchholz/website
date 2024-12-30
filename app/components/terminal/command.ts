@@ -69,9 +69,8 @@ export const commands: Record<string, Command> = {
         // Update current path with just the new segment
         currentPath.push(...path.split("/").filter(Boolean));
         return "";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        return `cd: ${path}: No such directory: ${error.message}`;
+      } catch {
+        return `cd: ${path}: No such directory`;
       }
     },
   },
@@ -138,9 +137,8 @@ export const commands: Record<string, Command> = {
         return contents
           .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
           .join("\r\n");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        return `ls: cannot access '${path}': No such file or directory: ${error.message}`;
+      } catch {
+        return `ls: cannot access '${path}': No such file or directory`;
       }
     },
   },
