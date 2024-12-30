@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     siteName: "Dan Buchholz",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: `${baseUrl}/og`,
+      },
+    ],
   },
   robots: {
     index: true,
@@ -43,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={cx(
-        "h-full w-full text-black bg-white dark:text-white dark:bg-black",
+        "h-full w-full dark:text-white dark:bg-black",
         GeistSans.variable,
         GeistMono.variable
       )}

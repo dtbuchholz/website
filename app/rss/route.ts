@@ -16,7 +16,7 @@ export async function GET(): Promise<Response> {
         `<item>
           <title>${post.metadata.title}</title>
           <link>${baseUrl}/blog/${post.slug}</link>
-          <description>${post.metadata.summary || ""}</description>
+          <description>${post.metadata.description || ""}</description>
           <pubDate>${new Date(post.metadata.publishedAt).toUTCString()}</pubDate>
           <content:encoded><![CDATA[${post.content}]]></content:encoded>
         </item>`

@@ -23,8 +23,10 @@ export function generateMetadata({ params }: { params: PageParams }): Metadata |
     return;
   }
 
-  const { title, publishedAt: publishedTime, summary: description, image } = post.metadata;
-  const ogImage = image ? image : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
+  const { title, publishedAt: publishedTime, description, image } = post.metadata;
+  const ogImage = image
+    ? `${baseUrl}/img/${image}`
+    : `${baseUrl}/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}`;
 
   return {
     title,
@@ -69,7 +71,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
             headline: post.metadata.title,
             datePublished: post.metadata.publishedAt,
             dateModified: post.metadata.publishedAt,
-            description: post.metadata.summary,
+            description: post.metadata.description,
             image: post.metadata.image
               ? `${baseUrl}${post.metadata.image}`
               : `/og?title=${encodeURIComponent(post.metadata.title)}`,
@@ -83,7 +85,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
       />
 
       <h1 className="title font-semibold text-2xl tracking-tighter">{post.metadata.title}</h1>
-      <h3 className="title text-lg my-4">{post.metadata.summary}</h3>
+      <h3 className="title text-lg my-4">{post.metadata.description}</h3>
       <div className="flex justify-between items-center my-4 text-sm">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}{" "}
@@ -100,6 +102,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
         </div>
       </div>
       <article className="prose w-full">
+        <hr className="my-8" />
         <MDX source={post.content} />
       </article>
     </section>
