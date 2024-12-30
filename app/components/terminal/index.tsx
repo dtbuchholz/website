@@ -6,11 +6,13 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
+import { LoadingSpinner } from "../loading";
 import { commands } from "./command";
 import { CompletionState, createTabCompletionHandler, getCompletions } from "./completion";
 import { CommandHistory, createKeyHandlers } from "./keypress";
 
 export default function Terminal() {
+  const [isReady, setIsReady] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
   const [term, setTerm] = useState<XTerm | null>(null);
   const currentCommand = useRef("");
@@ -79,6 +81,7 @@ export default function Terminal() {
     term.writeln("Type 'help' for available commands\n");
     term.write("$ ");
     term.focus();
+    setIsReady(true);
 
     // Handle input
     const keyHandler = createKeyHandlers({
@@ -107,9 +110,16 @@ export default function Terminal() {
   }, [term, handleTabCompletion]);
 
   return (
-    <div
-      ref={terminalRef}
-      className="h-[400px] w-full rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800"
-    />
+    <div className="relative h-[400px] w-full">
+      <div
+        ref={terminalRef}
+        className="z-0 h-full w-full rounded-lg overflow-hidden border border-neutral-800"
+      />
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+          <LoadingSpinner />
+        </div>
+      )}
+    </div>
   );
 }
