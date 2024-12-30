@@ -4,6 +4,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+
 import Footer from "./components/footer";
 import { Navbar } from "./components/nav";
 import { baseUrl } from "./sitemap";
@@ -14,10 +16,10 @@ export const metadata: Metadata = {
     default: "Dan Buchholz",
     template: "%s | Dan Buchholz",
   },
-  description: "Personal website and blog of Dan Buchholz",
+  description: "Website and blog of Dan Buchholz",
   openGraph: {
     title: "Dan Buchholz",
-    description: "Personal website and blog of Dan Buchholz",
+    description: "Website and blog of Dan Buchholz",
     url: baseUrl,
     siteName: "Dan Buchholz",
     locale: "en_US",
@@ -44,6 +46,7 @@ export const metadata: Metadata = {
 const cx = (...classes: string[]) => classes.filter(Boolean).join(" ");
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = headers().get("x-nonce");
   return (
     <html
       lang="en"
@@ -53,6 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         GeistMono.variable
       )}
     >
+      <head>
+        <script nonce={nonce || ""} />
+      </head>
       <body className="h-full w-full flex flex-col">
         <main className="flex flex-col flex-1 w-full max-w-3xl mt-8 mx-auto px-4 md:px-0">
           <Navbar />

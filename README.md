@@ -4,7 +4,9 @@
 
 ## Background
 
-This was cloned from the NextJS starter template [here](https://github.com/vercel/examples/tree/main/solutions/blog) and customized to my needs. It's pretty lightweight and designed to act as a blog site, with some other features for experiments I might host here.
+This was cloned from the NextJS starter template [here](https://github.com/vercel/examples/tree/main/solutions/blog) and customized to my needs. It's pretty lightweight and designed to act as a blog site, with various features for experiments (such as an [xterm.js](https://github.com/xtermjs/xterm.js) terminal).
+
+You can see the site [here](https://danbuchholz.com).
 
 ## Usage
 
@@ -17,7 +19,13 @@ pnpm install
 Run the development server:
 
 ```bash
-pnpm dev
+pnpm run dev
+```
+
+Build the site:
+
+```bash
+pnpm run build
 ```
 
 ## Contributing
