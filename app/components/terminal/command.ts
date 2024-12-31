@@ -39,6 +39,50 @@ export type Command = {
   execute: (options: CommandExecuteParams) => Promise<CommandOutput> | CommandOutput;
 };
 
+export class TerminalSpinner {
+  private frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  private interval: NodeJS.Timeout | null = null;
+  private currentFrame = 0;
+  private term: XTerm;
+  private message: string;
+
+  constructor(term: XTerm, message: string = "") {
+    this.term = term;
+    this.message = message;
+  }
+
+  start() {
+    if (this.interval) return;
+
+    // Save cursor position
+    this.term.write("\x1b7");
+
+    this.interval = setInterval(() => {
+      // Restore cursor position and clear line
+      this.term.write("\x1b8\x1b[K");
+
+      // Write new frame
+      this.term.write(`${this.frames[this.currentFrame]} ${this.message}`);
+
+      this.currentFrame = (this.currentFrame + 1) % this.frames.length;
+    }, 80);
+  }
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+
+      // Restore cursor position and clear line one last time
+      this.term.write("\x1b8\x1b[K");
+    }
+  }
+
+  setMessage(message: string) {
+    this.message = message;
+  }
+}
+
 export const commands: Record<string, Command> = {
   // Utility commands
   clear: {
@@ -335,8 +379,9 @@ export const commands: Record<string, Command> = {
 };
 
 async function handleAbout(term: XTerm): Promise<string> {
+  const spinner = new TerminalSpinner(term, "Analyzing about page...");
   try {
-    term.write("Analyzing about page...\r\n");
+    spinner.start();
     const request: LlmRequest = {
       type: "about",
     };
@@ -349,6 +394,8 @@ async function handleAbout(term: XTerm): Promise<string> {
     const body = (await response.json()) as LlmSummarizeResponse;
     const { summary: rawSummary } = body;
     const summary = formatText(rawSummary);
+
+    spinner.stop();
     return summary;
   } catch (error) {
     return `Error: ${error.message}`;
@@ -359,8 +406,10 @@ async function handleSummarize(path: string, term: XTerm): Promise<string> {
   if (!path || path.trim() === "") {
     return "Usage: ai summarize <path> (alias: 'sum')";
   }
+
+  const spinner = new TerminalSpinner(term, "Summarizing...");
   try {
-    term.write("Summarizing...\r\n");
+    spinner.start();
 
     const request: LlmRequest = {
       path,
@@ -373,15 +422,16 @@ async function handleSummarize(path: string, term: XTerm): Promise<string> {
     if (!response.ok) throw new Error("File or directory not found");
     // Handle streaming response
     const reader = response.body?.getReader();
+    let summary = "";
     while (true) {
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      const summary = formatText(response.summary);
-      term.write(summary);
+      summary += formatText(response.summary);
     }
 
-    return "";
+    spinner.stop();
+    return summary;
   } catch (error) {
     return `Error: ${error.message}`;
   }
@@ -391,8 +441,10 @@ async function handleAsk(path: string, question: string, term: XTerm): Promise<s
   if (!question || question.trim() === "" || !path || path.trim() === "") {
     return "Usage: ai ask <path> <question>";
   }
+
+  const spinner = new TerminalSpinner(term, "Asking...");
   try {
-    term.write("Asking...\r\n");
+    spinner.start();
     const request: LlmRequest = {
       path,
       type: "ask",
@@ -405,14 +457,16 @@ async function handleAsk(path: string, question: string, term: XTerm): Promise<s
     if (!response.ok) throw new Error("File or directory not found");
 
     const reader = response.body?.getReader();
+    let answer = "";
     while (true) {
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      const answer = formatText(response.answer);
-      term.write(answer);
+      answer += formatText(response.answer);
     }
-    return "";
+
+    spinner.stop();
+    return answer;
   } catch (error) {
     return `Error: ${error.message}`;
   }
