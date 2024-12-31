@@ -1,7 +1,7 @@
 import { Terminal as XTerm } from "@xterm/xterm";
 
-import { FsItem } from "@/api/fs/route";
 import { LlmRequest, LlmSummarizeResponse } from "@/api/ai/route";
+import { FsItem } from "@/api/fs/route";
 import { formatText } from "./utils";
 
 export type CommandContext = {

@@ -245,7 +245,7 @@ export async function POST(req: Request): Promise<NextResponse<LlmResponse | Api
   }
 }
 
-export async function GET(_: Request): Promise<NextResponse<ApiError>> {
+export async function GET(): Promise<NextResponse<ApiError>> {
   const errorResponse: ApiError = {
     name: "NotFound",
     message: "Not found",
