@@ -4,6 +4,14 @@ import { LlmRequest, LlmSummarizeResponse } from "@/api/ai/route";
 import { FsItem } from "@/api/fs/route";
 import { formatText } from "./utils";
 
+// Define valid webpage paths and their corresponding routes
+const VALID_SITE_REDIRECT_ROUTES = {
+  blog: (slug: string) => `/blog/${slug}`,
+};
+
+// Define viewable file extensions
+const VIEWABLE_EXTENSIONS = [".md", ".mdx", ".txt"];
+
 export type CommandContext = {
   currentPath: string[];
 };
@@ -17,6 +25,10 @@ export type CommandExecuteParams = {
 export type CommandOutput = {
   content: string;
   silent?: boolean; // If true, don't print output
+  action?: {
+    type: "VIEW_FILE";
+    path: string;
+  };
 };
 
 export type Command = {
@@ -197,6 +209,66 @@ export const commands: Record<string, Command> = {
       } catch {
         return {
           content: `ls: cannot access '${path}': No such file or directory`,
+          silent: false,
+        };
+      }
+    },
+  },
+  open: {
+    name: "open",
+    description: "Open a file in browser or viewer",
+    execute: async ({ args, context: { currentPath } }) => {
+      if (!args[0]) {
+        return {
+          content: "Usage: open <filename>",
+          silent: false,
+        };
+      }
+
+      try {
+        let fullPath: string;
+        if (currentPath.length > 0) {
+          fullPath = `${currentPath.join("/")}/${args[0]}`;
+        } else {
+          fullPath = args[0];
+        }
+
+        // Check if this is a valid webpage path
+        const pathParts = fullPath.split("/");
+        // Check if `OPEN` contains a valid route
+        if (VALID_SITE_REDIRECT_ROUTES[pathParts[0]]) {
+          // Handle blog posts - redirect to webpage
+          const slug = pathParts[1]?.replace(/\.mdx?$/, "");
+          if (slug) {
+            window.open(`/blog/${slug}`, "_blank");
+            return {
+              content: `Opening ${fullPath} in new tab...`,
+              silent: false,
+            };
+          }
+        }
+
+        // For other files, check if they're viewable
+        const extension = fullPath.match(/\.[^.]+$/)?.[0];
+        if (extension && VIEWABLE_EXTENSIONS.includes(extension)) {
+          // Show in file viewer
+          return {
+            content: `Opening ${fullPath} in viewer...`,
+            silent: false,
+            action: {
+              type: "VIEW_FILE",
+              path: fullPath,
+            },
+          };
+        }
+
+        return {
+          content: `Cannot open ${fullPath}: Unsupported file type`,
+          silent: false,
+        };
+      } catch (error) {
+        return {
+          content: `Error opening ${args[0]}: ${error.message}`,
           silent: false,
         };
       }

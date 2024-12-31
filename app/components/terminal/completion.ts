@@ -2,7 +2,7 @@ import { Terminal as XTerm } from "@xterm/xterm";
 
 import { FsItem } from "@/api/fs/route";
 
-const COMPLETABLE_COMMANDS = ["ai", "cat", "cd", "ls"];
+const COMPLETABLE_COMMANDS = ["ai", "cat", "cd", "ls", "open"];
 
 export type CompletionState = {
   matches: string[];

@@ -1,6 +1,6 @@
 import { Terminal as XTerm } from "@xterm/xterm";
 
-import { Command } from "./command";
+import { Command, CommandOutput } from "./command";
 import { CompletionState } from "./completion";
 
 type KeyHandlerDeps = {
@@ -13,6 +13,7 @@ type KeyHandlerDeps = {
   historyIndex: React.MutableRefObject<number>;
   commands: Record<string, Command>;
   handleTabCompletion: (command: string) => Promise<void>;
+  handleCommandOutput: (output: CommandOutput) => void;
 };
 
 export class CommandHistory {
@@ -60,6 +61,7 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
     historyIndex,
     commands,
     handleTabCompletion,
+    handleCommandOutput,
   } = deps;
 
   const handleTab = () => {
@@ -129,9 +131,7 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
         const context = { currentPath: currentPath.current };
         Promise.resolve(commands[cmd].execute({ args, context, term }))
           .then((output) => {
-            if (!output.silent) {
-              term.writeln(output.content);
-            }
+            handleCommandOutput(output);
             term.write("$ ");
           })
           .catch((error) => {

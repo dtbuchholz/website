@@ -7,7 +7,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
 import { LoadingSpinner } from "@/components/loading";
-import { commands } from "./command";
+import { FileViewer } from "../file-viewer";
+import { CommandOutput, commands } from "./command";
 import { CompletionState, createTabCompletionHandler, getCompletions } from "./completion";
 import { CommandHistory, createKeyHandlers } from "./keypress";
 
@@ -22,6 +23,19 @@ export default function Terminal() {
   const completionState = useRef<CompletionState | null>(null);
   const commandHistory = useRef<CommandHistory>(new CommandHistory(100));
   const historyIndex = useRef<number>(0);
+  const [viewingFile, setViewingFile] = useState<string | null>(null);
+
+  const handleCommandOutput = useCallback(
+    (output: CommandOutput) => {
+      if (output.action?.type === "VIEW_FILE") {
+        setViewingFile(output.action.path);
+      }
+      if (!output.silent) {
+        term?.writeln(output.content);
+      }
+    },
+    [term]
+  );
 
   const handleTabCompletion = useCallback(
     async (command: string) => {
@@ -88,6 +102,7 @@ export default function Terminal() {
       historyIndex,
       commands,
       handleTabCompletion,
+      handleCommandOutput,
     });
 
     const disposable = term.onData(keyHandler);
@@ -114,19 +129,22 @@ export default function Terminal() {
       window.removeEventListener("resize", handleResize);
       resizeObserver.disconnect();
     };
-  }, [term, handleTabCompletion]);
+  }, [term, handleTabCompletion, handleCommandOutput]);
 
   return (
-    <div className="relative h-[400px] w-full">
-      <div
-        ref={terminalRef}
-        className="z-0 h-full w-full rounded-lg overflow-hidden border border-neutral-800"
-      />
-      {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
-          <LoadingSpinner />
-        </div>
-      )}
-    </div>
+    <>
+      <div className="relative h-[400px] w-full">
+        <div
+          ref={terminalRef}
+          className="z-0 h-full w-full rounded-lg overflow-hidden border border-neutral-800"
+        />
+        {!isReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+            <LoadingSpinner />
+          </div>
+        )}
+      </div>
+      {viewingFile && <FileViewer path={viewingFile} onClose={() => setViewingFile(null)} />}
+    </>
   );
 }

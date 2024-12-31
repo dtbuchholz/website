@@ -7,6 +7,7 @@
 @layer theme {
   @theme {
     --default-transition-duration: 200ms;
+    --color-neutral-200: #e0e1dd;
   }
 }
 
