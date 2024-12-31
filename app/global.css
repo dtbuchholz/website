@@ -34,7 +34,7 @@
   --sh-foreground: var(--sh-color-lightest);
   --sh-secondary: var(--color-neutral-900);
   --color-neutral-800: var(--sh-color-dark);
-  --color-neutral-200: var(--sh-color-lighter);
+  --color-neutral-200: var(--sh-color-lightest);
   --font-family: "JetBrains Mono", Consolas, monaco, monospace;
 
   --font-weight-normal: 100;

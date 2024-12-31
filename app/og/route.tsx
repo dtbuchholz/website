@@ -26,7 +26,7 @@ export async function GET(request: Request) {
             </h2>
           </div>
           <div tw="flex flex-col md:flex-row w-full px-4 md:items-center justify-center p-8">
-            <p tw="text-4xl text-center" style={{ color: " #778da9" }}>
+            <p tw="text-4xl text-center" style={{ color: "#778da9" }}>
               {"> "} {description}
             </p>
           </div>
