@@ -136,6 +136,7 @@ export const commands: Record<string, Command> = {
         const contents = await response.json();
         return contents
           .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+          .sort((a: string, b: string) => a.localeCompare(b))
           .join("\r\n");
       } catch {
         return `ls: cannot access '${path}': No such file or directory`;

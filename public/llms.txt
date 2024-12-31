@@ -1,0 +1,11 @@
+# Dan Buchholz's Personal Website
+
+> A personal website and blog for Dan Buchholz, built with Next.js, featuring an interactive terminal interface and technical writing about blockchain systems, distributed systems, and software engineering.
+
+The site consists of a main landing page with an interactive terminal, blog posts, and an about page detailing professional experience. The terminal supports various commands including AI-powered content analysis.
+
+## Core Pages
+
+- [About Page](https://danbuchholz.com/about): Professional background and experience
+- [Blog Index](https://danbuchholz.com/blog): Collection of technical writing and posts
+- [Terminal Guide](https://danbuchholz.com/api/llms/terminal.md): Documentation for the interactive terminal interface and available commands

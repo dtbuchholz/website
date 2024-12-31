@@ -157,3 +157,7 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(_: Request) {
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
+}
