@@ -1,4 +1,5 @@
 import { Terminal as XTerm } from "@xterm/xterm";
+
 import { FsItem } from "@/api/fs/route";
 
 const COMPLETABLE_COMMANDS = ["ai", "cat", "cd", "ls"];

@@ -3,6 +3,7 @@ import { join } from "path";
 import { NextResponse } from "next/server";
 
 import { ApiError } from "@/lib/api";
+
 const MARKDOWN_ROOT = join(process.cwd(), "app", "vfs", "llms");
 
 export async function GET(_: Request, { params }: { params: { slug: string[] } }) {

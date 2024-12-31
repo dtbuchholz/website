@@ -1,4 +1,5 @@
 import { Terminal as XTerm } from "@xterm/xterm";
+
 import { Command } from "./command";
 import { CompletionState } from "./completion";
 

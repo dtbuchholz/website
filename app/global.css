@@ -35,7 +35,7 @@
   --color-neutral-200: var(--sh-color-lightest);
   --font-family: "JetBrains Mono", Consolas, monaco, monospace;
 
-  --font-weight-normal: 300;
+  --font-weight-normal: 100;
   --font-weight-medium: 600;
   --font-weight-bold: 800;
 
@@ -197,6 +197,42 @@ table {
 
 .back-to-home:hover {
   @apply text-neutral-800 dark:text-neutral-200;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100;
+  src:
+    local(""),
+    url("/fonts/JetBrainsMono-Thin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: italic;
+  font-weight: 100;
+  src:
+    local(""),
+    url("/fonts/JetBrainsMono-ThinItalic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 200;
+  src:
+    local(""),
+    url("/fonts/JetBrainsMono-ExtraLight.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: italic;
+  font-weight: 200;
+  src:
+    local(""),
+    url("/fonts/JetBrainsMono-ExtraLightItalic.woff2") format("woff2");
 }
 
 @font-face {

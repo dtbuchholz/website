@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatDate, getBlogPosts } from "app/blog/utils";
-import { MDX } from "app/components/mdx";
-import { baseUrl } from "app/sitemap";
+
+import { formatDate, getBlogPosts } from "@/blog/utils";
+import { MDX } from "@/components/mdx";
+import { baseUrl } from "@/sitemap";
 
 type PageParams = {
   slug: string;

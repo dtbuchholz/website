@@ -1,5 +1,6 @@
 import path from "path";
-import { getMDXData, type MDXData } from "../components/mdx/utils";
+
+import { getMDXData, type MDXData } from "@/components/mdx/utils";
 
 export function getBlogPosts(): MDXData[] {
   return getMDXData(path.join(process.cwd(), "app", "blog", "posts"));
