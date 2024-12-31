@@ -126,9 +126,11 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
       const [cmd, ...args] = command.split(" ");
       if (commands[cmd]) {
         const context = { currentPath: currentPath.current };
-        Promise.resolve(commands[cmd].execute(args, context, term))
+        Promise.resolve(commands[cmd].execute({ args, context, term }))
           .then((output) => {
-            term.writeln(output);
+            if (!output.silent) {
+              term.writeln(output.content);
+            }
             term.write("$ ");
           })
           .catch((error) => {

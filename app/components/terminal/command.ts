@@ -8,10 +8,21 @@ export type CommandContext = {
   currentPath: string[];
 };
 
+export type CommandExecuteParams = {
+  args: string[];
+  context: CommandContext;
+  term: XTerm;
+};
+
+export type CommandOutput = {
+  content: string;
+  silent?: boolean; // If true, don't print output
+};
+
 export type Command = {
   name: string;
   description: string;
-  execute: (args: string[], context: CommandContext, term: XTerm) => string | Promise<string>;
+  execute: (options: CommandExecuteParams) => Promise<CommandOutput> | CommandOutput;
 };
 
 export const commands: Record<string, Command> = {
@@ -19,30 +30,39 @@ export const commands: Record<string, Command> = {
   clear: {
     name: "clear",
     description: "Clear the terminal screen",
-    execute: (_, __, term) => {
+    execute: ({ term }) => {
       term?.clear();
       term?.write("\x1b[H"); // Move cursor to home position (0,0)
-      return ""; // Return empty string since we don't want to write anything
+      return {
+        content: "",
+        silent: false,
+      };
     },
   },
   help: {
     name: "help",
     description: "List all available commands",
     execute: () => {
-      return Object.entries(commands)
-        .filter(([name]) => name !== "help")
-        .map(([name, cmd]) => `${name.padEnd(8)} - ${cmd.description}`)
-        .sort((a: string, b: string) => a.localeCompare(b))
-        .join("\r\n");
+      return {
+        content: Object.entries(commands)
+          .filter(([name]) => name !== "help")
+          .map(([name, cmd]) => `${name.padEnd(8)} - ${cmd.description}`)
+          .sort((a: string, b: string) => a.localeCompare(b))
+          .join("\r\n"),
+        silent: false,
+      };
     },
   },
   // File system commands
   cat: {
     name: "cat",
     description: "Display file contents",
-    execute: async (args, { currentPath }, term) => {
+    execute: async ({ args, context: { currentPath } }) => {
       if (!args[0]) {
-        return "Usage: cat <filename>";
+        return {
+          content: "Usage: cat <filename>",
+          silent: false,
+        };
       }
 
       try {
@@ -63,42 +83,55 @@ export const commands: Record<string, Command> = {
         // Check if the target is a directory
         const targetItem = contents.find((item) => item.name === args[0].replace(/\/$/, ""));
         if (!targetItem || targetItem.type !== "file") {
-          return `cat: ${args[0]}: Is a directory`;
+          return {
+            content: `cat: ${args[0]}: Is a directory`,
+            silent: false,
+          };
         }
 
         // For files, the contents array should contain the file content
-        if (Array.isArray(contents) && contents.length >= 1 && contents[0].fileContents) {
-          return formatText(contents[0].fileContents);
+        if (Array.isArray(contents) && contents.length >= 1) {
+          return {
+            content: formatText(contents[0].fileContents ?? ""),
+            silent: false,
+          };
         }
 
         throw new Error("Invalid file format");
       } catch (error) {
-        return `cat: ${args[0]}: ${error.message}`;
+        return {
+          content: `cat: ${args[0]}: ${error.message}`,
+          silent: false,
+        };
       }
     },
   },
   cd: {
     name: "cd",
     description: "Change directory",
-    execute: async (args, { currentPath }) => {
+    execute: async ({ args, context: { currentPath } }) => {
       const path = args[0];
 
       // No args - return to root
+      const output: CommandOutput = {
+        content: "",
+        silent: true,
+      };
       if (!path) {
         currentPath.length = 0;
-        return "";
+        return output;
       }
 
       if (path === "..") {
         if (currentPath.length > 0) {
           currentPath.pop();
         }
-        return "";
+        return output;
       }
 
       if (path === "/") {
         currentPath.length = 0; // Clear the array
-        return "";
+        return output;
       }
 
       try {
@@ -119,21 +152,27 @@ export const commands: Record<string, Command> = {
         // Check if the target itself is a file (not its contents)
         const targetItem = contents.find((item) => item.name === path.replace(/\/$/, ""));
         if (targetItem?.type === "file") {
-          return `cd: ${path}: Not a directory`;
+          return {
+            content: `cd: ${path}: Not a directory`,
+            silent: false,
+          };
         }
 
         // Update current path with just the new segment
         currentPath.push(...path.split("/").filter(Boolean));
-        return "";
+        return output;
       } catch {
-        return `cd: ${path}: No such directory`;
+        return {
+          content: `cd: ${path}: No such directory`,
+          silent: false,
+        };
       }
     },
   },
   ls: {
     name: "ls",
     description: "List directory contents",
-    execute: async (args, { currentPath }) => {
+    execute: async ({ args, context: { currentPath } }) => {
       let path: string;
       if (!args[0]) {
         // No args - list current directory
@@ -148,34 +187,46 @@ export const commands: Record<string, Command> = {
         if (!response.ok) throw new Error("Failed to list directory");
 
         const contents = (await response.json()) as FsItem[];
-        return contents
-          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
-          .sort((a: string, b: string) => a.localeCompare(b))
-          .join("\r\n");
+        return {
+          content: contents
+            .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+            .sort((a: string, b: string) => a.localeCompare(b))
+            .join("\r\n"),
+          silent: false,
+        };
       } catch {
-        return `ls: cannot access '${path}': No such file or directory`;
+        return {
+          content: `ls: cannot access '${path}': No such file or directory`,
+          silent: false,
+        };
       }
     },
   },
   pwd: {
     name: "pwd",
     description: "Print working directory",
-    execute: (_, { currentPath }) => {
-      return "/" + currentPath.join("/");
+    execute: ({ context: { currentPath } }) => {
+      return {
+        content: "/" + currentPath.join("/"),
+        silent: false,
+      };
     },
   },
   // AI-assisted command
   about: {
     name: "about",
     description: "Learn more about me",
-    execute: async (_, __, term) => {
-      return handleAbout(term);
+    execute: async ({ term }) => {
+      return {
+        content: await handleAbout(term),
+        silent: false,
+      };
     },
   },
   ai: {
     name: "ai",
     description: "Get content summaries or ask questions",
-    execute: async (args, { currentPath }, term) => {
+    execute: async ({ args, context: { currentPath }, term }) => {
       const [subcommand, path] = args;
       let fullPath: string;
       if (currentPath.length > 0) {
@@ -189,12 +240,21 @@ export const commands: Record<string, Command> = {
       switch (subcommand) {
         case "sum":
         case "summarize":
-          return handleSummarize(fullPath, term);
+          return {
+            content: await handleSummarize(fullPath, term),
+            silent: false,
+          };
         case "ask":
           const question = args.slice(2).join(" ");
-          return handleAsk(fullPath, question, term);
+          return {
+            content: await handleAsk(fullPath, question, term),
+            silent: false,
+          };
         default:
-          return "Usage: ai [ask|summarize] <path> [question]";
+          return {
+            content: "Usage: ai [ask|summarize] <path> [question]",
+            silent: false,
+          };
       }
     },
   },
