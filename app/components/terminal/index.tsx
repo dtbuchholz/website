@@ -15,6 +15,7 @@ export default function Terminal() {
   const [isReady, setIsReady] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
   const [term, setTerm] = useState<XTerm | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
   const currentCommand = useRef("");
   const cursorOffset = useRef(0); // Position from the end of the command
   const currentPath = useRef<string[]>([]); // Initialize empty path array
@@ -51,16 +52,14 @@ export default function Terminal() {
     // Add addons
     const fitAddon = new FitAddon();
     const webLinksAddon = new WebLinksAddon();
-
     terminal.loadAddon(fitAddon);
     terminal.loadAddon(webLinksAddon);
 
     setTerm(terminal);
+    fitAddonRef.current = fitAddon;
 
     return () => {
-      if (terminal) {
-        terminal.dispose();
-      }
+      terminal.dispose();
     };
   }, []);
 
@@ -68,13 +67,9 @@ export default function Terminal() {
   useEffect(() => {
     if (!term || !terminalRef.current) return;
 
-    // Add addons
-    const fitAddon = new FitAddon();
-    term.loadAddon(fitAddon);
-
     // Open terminal in div
     term.open(terminalRef.current);
-    fitAddon.fit(); // Initial fit
+    fitAddonRef.current?.fit();
 
     // Initial greeting
     term.writeln("Welcome to danbuchholz.com");
@@ -100,12 +95,24 @@ export default function Terminal() {
 
     // Handle window resize
     const handleResize = () => {
-      fitAddon.fit();
+      if (fitAddonRef.current) {
+        fitAddonRef.current.fit();
+      }
     };
-    term.onResize(handleResize);
+    window.addEventListener("resize", handleResize);
+    const resizeObserver = new ResizeObserver(() => {
+      if (fitAddonRef.current) {
+        fitAddonRef.current.fit();
+      }
+    });
+    if (terminalRef.current) {
+      resizeObserver.observe(terminalRef.current);
+    }
 
     return () => {
       disposable.dispose();
+      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
     };
   }, [term, handleTabCompletion]);
 
