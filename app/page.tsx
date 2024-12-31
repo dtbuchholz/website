@@ -7,7 +7,7 @@ const Terminal = dynamic(() => import("app/components/terminal/index"), {
   ssr: false,
   loading: () => {
     return (
-      <div className="relative h-[400px] w-full rounded-lg overflow-hidden border border-neutral-800">
+      <div className="relative h-[400px] w-full rounded-lg overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
           <LoadingSpinner />
         </div>

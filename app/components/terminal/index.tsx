@@ -149,7 +149,7 @@ export default function Terminal() {
       <div className="relative h-[400px] w-full">
         <div
           ref={terminalRef}
-          className="z-0 h-full w-full rounded-lg overflow-hidden border border-neutral-800"
+          className="z-0 h-full w-full rounded-lg overflow-hidden bg-neutral-800 px-1"
         />
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
