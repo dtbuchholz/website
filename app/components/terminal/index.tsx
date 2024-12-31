@@ -3,7 +3,8 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Terminal as XTerm } from "@xterm/xterm";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
 import { LoadingSpinner } from "@/components/loading";
@@ -13,6 +14,7 @@ import { CompletionState, createTabCompletionHandler, getCompletions } from "./c
 import { CommandHistory, createKeyHandlers } from "./keypress";
 
 export default function Terminal() {
+  const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
   const [term, setTerm] = useState<XTerm | null>(null);
@@ -48,6 +50,17 @@ export default function Terminal() {
       })(command);
     },
     [term, currentPath, completionState, currentCommand]
+  );
+
+  const commandsWithRouter = useMemo(
+    () => ({
+      ...commands,
+      open: {
+        ...commands.open,
+        execute: (options) => commands.open.execute({ ...options, router }),
+      },
+    }),
+    [router]
   );
 
   // Initialize terminal
@@ -100,7 +113,7 @@ export default function Terminal() {
       completionState,
       commandHistory,
       historyIndex,
-      commands,
+      commands: commandsWithRouter,
       handleTabCompletion,
       handleCommandOutput,
     });
@@ -129,7 +142,7 @@ export default function Terminal() {
       window.removeEventListener("resize", handleResize);
       resizeObserver.disconnect();
     };
-  }, [term, handleTabCompletion, handleCommandOutput]);
+  }, [term, handleTabCompletion, handleCommandOutput, commandsWithRouter]);
 
   return (
     <>

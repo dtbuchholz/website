@@ -1,4 +1,5 @@
 import { Terminal as XTerm } from "@xterm/xterm";
+import { type Router } from "next/router";
 
 import { LlmRequest, LlmSummarizeResponse } from "@/api/ai/route";
 import { FsItem } from "@/api/fs/route";
@@ -20,6 +21,7 @@ export type CommandExecuteParams = {
   args: string[];
   context: CommandContext;
   term: XTerm;
+  router?: Router;
 };
 
 export type CommandOutput = {
@@ -217,7 +219,7 @@ export const commands: Record<string, Command> = {
   open: {
     name: "open",
     description: "Open a file in browser or viewer",
-    execute: async ({ args, context: { currentPath } }) => {
+    execute: async ({ args, context: { currentPath }, router }) => {
       if (!args[0]) {
         return {
           content: "Usage: open <filename>",
@@ -240,7 +242,7 @@ export const commands: Record<string, Command> = {
           // Handle blog posts - redirect to webpage
           const slug = pathParts[1]?.replace(/\.mdx?$/, "");
           if (slug) {
-            window.open(`/blog/${slug}`, "_blank");
+            router?.push(VALID_SITE_REDIRECT_ROUTES[pathParts[0]](slug));
             return {
               content: `Opening ${fullPath} in new tab...`,
               silent: false,

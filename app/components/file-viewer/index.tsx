@@ -36,6 +36,8 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault(); // Prevent other handlers from catching this
+        e.stopPropagation(); // Stop event bubbling
         onClose();
       }
     };
@@ -46,11 +48,12 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
       }
     };
 
-    document.addEventListener("keydown", handleEscape);
+    // Use capture phase to handle the event before it reaches the terminal
+    document.addEventListener("keydown", handleEscape, true);
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleEscape, true);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
