@@ -48,7 +48,7 @@ export class CommandHistory {
   }
 }
 
-export function createKeyHandlers(deps: KeyHandlerDeps) {
+export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void {
   const {
     term,
     currentCommand,

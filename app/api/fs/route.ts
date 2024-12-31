@@ -2,6 +2,8 @@ import { readdir, readFile, stat } from "fs/promises";
 import { extname, join } from "path";
 import { NextResponse } from "next/server";
 
+import { ApiError } from "@/lib/api";
+
 // Define the root directory for terminal access
 const TERMINAL_ROOT = join(process.cwd(), "app", "vfs");
 const BLOG_POSTS_PATH = join(process.cwd(), "app", "blog", "posts");
@@ -54,9 +56,11 @@ async function getDirectoryContents(path: string, isRoot = false): Promise<FsIte
   return items;
 }
 
-export async function GET(request: Request): Promise<NextResponse<FsItem[] | { error: string }>> {
+export async function GET(request: Request): Promise<NextResponse<FsItem[] | ApiError>> {
   const { searchParams } = new URL(request.url);
   let requestedPath = searchParams.get("path") || "/";
+  // Decode the URL-encoded path
+  requestedPath = decodeURIComponent(requestedPath);
   // Normalize path: remove trailing slash unless it's root
   requestedPath = requestedPath === "/" ? "/" : requestedPath.replace(/\/$/, "");
 
@@ -69,7 +73,12 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | { e
 
       // Security check for the actual path
       if (!actualPath.startsWith(BLOG_POSTS_PATH)) {
-        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+        const errorResponse: ApiError = {
+          name: "AccessDenied",
+          message: "Access denied",
+          status: 403,
+        };
+        return NextResponse.json(errorResponse, { status: 403 });
       }
 
       const stats = await stat(actualPath);
@@ -87,7 +96,12 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | { e
     // Handle regular paths
     const normalizedPath = join(TERMINAL_ROOT, requestedPath).replace(/\\/g, "/");
     if (!normalizedPath.startsWith(TERMINAL_ROOT)) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      const errorResponse: ApiError = {
+        name: "AccessDenied",
+        message: "Access denied",
+        status: 403,
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Check if path exists
@@ -103,6 +117,11 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | { e
     return NextResponse.json([fileItem]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    return NextResponse.json({ error: `Directory not found: ${error.message}` }, { status: 404 });
+    const errorResponse: ApiError = {
+      name: "DirectoryNotFound",
+      message: `Directory not found: ${error.message}`,
+      status: 404,
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 }

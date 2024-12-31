@@ -81,7 +81,6 @@ export default function Terminal() {
     term.writeln("Type 'help' for available commands\n");
     term.write("$ ");
     term.focus();
-    setIsReady(true);
 
     // Handle input
     const keyHandler = createKeyHandlers({
@@ -97,6 +96,7 @@ export default function Terminal() {
     });
 
     const disposable = term.onData(keyHandler);
+    setIsReady(true);
 
     // Handle window resize
     const handleResize = () => {

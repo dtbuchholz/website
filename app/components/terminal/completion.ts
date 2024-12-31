@@ -1,4 +1,7 @@
 import { Terminal as XTerm } from "@xterm/xterm";
+import { FsItem } from "@/api/fs/route";
+
+const COMPLETABLE_COMMANDS = ["ai", "cat", "cd", "ls"];
 
 export type CompletionState = {
   matches: string[];
@@ -24,7 +27,7 @@ export const getCompletions = async (path: string, currentPath: string[]): Promi
     const response = await fetch(`/api/fs?path=${encodeURIComponent(searchPath)}`);
     if (!response.ok) return [];
 
-    const contents = await response.json();
+    const contents = (await response.json()) as FsItem[];
     const searchTerm = path.split("/").pop() || "";
 
     return contents
@@ -36,7 +39,7 @@ export const getCompletions = async (path: string, currentPath: string[]): Promi
   }
 };
 
-export function createTabCompletionHandler(deps: TabCompletionDeps) {
+export function createTabCompletionHandler(deps: TabCompletionDeps): (command: string) => void {
   const { term, currentPath, completionState, currentCommand, getCompletions } = deps;
 
   const handleFirstTabPress = async (cmd: string, subcommand: string | null, partial: string) => {
@@ -116,9 +119,8 @@ export function createTabCompletionHandler(deps: TabCompletionDeps) {
 
   return async (command: string) => {
     const [cmd, ...args] = command.split(" ");
-    const completableCommands = ["cd", "ls", "ai"];
 
-    if (!completableCommands.includes(cmd)) return;
+    if (!COMPLETABLE_COMMANDS.includes(cmd)) return;
 
     if (cmd === "ai") {
       await handleAiCompletion(cmd, args);

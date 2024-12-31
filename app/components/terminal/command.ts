@@ -1,5 +1,9 @@
 import { Terminal as XTerm } from "@xterm/xterm";
 
+import { FsItem } from "@/api/fs/route";
+import { LlmRequest, LlmSummarizeResponse } from "@/api/ai/route";
+import { formatText } from "./utils";
+
 export type CommandContext = {
   currentPath: string[];
 };
@@ -11,6 +15,16 @@ export type Command = {
 };
 
 export const commands: Record<string, Command> = {
+  // Utility commands
+  clear: {
+    name: "clear",
+    description: "Clear the terminal screen",
+    execute: (_, __, term) => {
+      term?.clear();
+      term?.write("\x1b[H"); // Move cursor to home position (0,0)
+      return ""; // Return empty string since we don't want to write anything
+    },
+  },
   help: {
     name: "help",
     description: "List all available commands",
@@ -20,6 +34,47 @@ export const commands: Record<string, Command> = {
         .map(([name, cmd]) => `${name.padEnd(8)} - ${cmd.description}`)
         .sort((a: string, b: string) => a.localeCompare(b))
         .join("\r\n");
+    },
+  },
+  // File system commands
+  cat: {
+    name: "cat",
+    description: "Display file contents",
+    execute: async (args, { currentPath }, term) => {
+      if (!args[0]) {
+        return "Usage: cat <filename>";
+      }
+
+      try {
+        let fullPath: string;
+        if (currentPath.length > 0) {
+          // In a subdirectory - join paths
+          fullPath = `${currentPath.join("/")}/${args[0]}`;
+        } else {
+          // At root - use path directly
+          fullPath = args[0];
+        }
+
+        const encodedPath = encodeURIComponent(fullPath);
+        const response = await fetch(`/api/fs?path=${encodedPath}`);
+        if (!response.ok) throw new Error("File not found");
+
+        const contents = (await response.json()) as FsItem[];
+        // Check if the target is a directory
+        const targetItem = contents.find((item) => item.name === args[0].replace(/\/$/, ""));
+        if (!targetItem || targetItem.type !== "file") {
+          return `cat: ${args[0]}: Is a directory`;
+        }
+
+        // For files, the contents array should contain the file content
+        if (Array.isArray(contents) && contents.length >= 1 && contents[0].fileContents) {
+          return formatText(contents[0].fileContents);
+        }
+
+        throw new Error("Invalid file format");
+      } catch (error) {
+        return `cat: ${args[0]}: ${error.message}`;
+      }
     },
   },
   cd: {
@@ -55,10 +110,11 @@ export const commands: Record<string, Command> = {
           // At root - use path directly
           fullPath = path;
         }
-        const response = await fetch(`/api/fs?path=${encodeURIComponent(fullPath)}`);
+        const encodedPath = encodeURIComponent(fullPath);
+        const response = await fetch(`/api/fs?path=${encodedPath}`);
         if (!response.ok) throw new Error("File or directory not found");
 
-        const contents = await response.json();
+        const contents = (await response.json()) as FsItem[];
 
         // Check if the target itself is a file (not its contents)
         const targetItem = contents.find((item) => item.name === path.replace(/\/$/, ""));
@@ -74,6 +130,41 @@ export const commands: Record<string, Command> = {
       }
     },
   },
+  ls: {
+    name: "ls",
+    description: "List directory contents",
+    execute: async (args, { currentPath }) => {
+      let path: string;
+      if (!args[0]) {
+        // No args - list current directory
+        path = currentPath.join("/");
+      } else {
+        // Args provided - construct full path from current location
+        path = currentPath.length > 0 ? `${currentPath.join("/")}/${args[0]}` : args[0];
+      }
+      try {
+        const encodedPath = encodeURIComponent(path);
+        const response = await fetch(`/api/fs?path=${encodedPath}`);
+        if (!response.ok) throw new Error("Failed to list directory");
+
+        const contents = (await response.json()) as FsItem[];
+        return contents
+          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+          .sort((a: string, b: string) => a.localeCompare(b))
+          .join("\r\n");
+      } catch {
+        return `ls: cannot access '${path}': No such file or directory`;
+      }
+    },
+  },
+  pwd: {
+    name: "pwd",
+    description: "Print working directory",
+    execute: (_, { currentPath }) => {
+      return "/" + currentPath.join("/");
+    },
+  },
+  // AI-assisted command
   about: {
     name: "about",
     description: "Learn more about me",
@@ -107,82 +198,43 @@ export const commands: Record<string, Command> = {
       }
     },
   },
-  clear: {
-    name: "clear",
-    description: "Clear the terminal screen",
-    execute: (_, __, term) => {
-      term?.clear();
-      term?.write("\x1b[H"); // Move cursor to home position (0,0)
-      return ""; // Return empty string since we don't want to write anything
-    },
-  },
-  ls: {
-    name: "ls",
-    description: "List directory contents",
-    execute: async (args, { currentPath }) => {
-      let path: string;
-      if (!args[0]) {
-        // No args - list current directory
-        path = currentPath.join("/");
-      } else {
-        // Args provided - construct full path from current location
-        path = currentPath.length > 0 ? `${currentPath.join("/")}/${args[0]}` : args[0];
-      }
-      try {
-        const response = await fetch(`/api/fs?path=${encodeURIComponent(path)}`);
-        if (!response.ok)
-          throw new Error("Failed to list directory" + `/api/fs?path=${encodeURIComponent(path)}`);
-
-        const contents = await response.json();
-        return contents
-          .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
-          .sort((a: string, b: string) => a.localeCompare(b))
-          .join("\r\n");
-      } catch {
-        return `ls: cannot access '${path}': No such file or directory`;
-      }
-    },
-  },
-  pwd: {
-    name: "pwd",
-    description: "Print working directory",
-    execute: (_, { currentPath }) => {
-      return "/" + currentPath.join("/");
-    },
-  },
 };
 
-async function handleAbout(term: XTerm) {
+async function handleAbout(term: XTerm): Promise<string> {
   try {
     term.write("Analyzing about page...\r\n");
+    const request: LlmRequest = {
+      type: "about",
+    };
     const response = await fetch("/api/ai", {
       method: "POST",
-      body: JSON.stringify({ type: "about" }),
+      body: JSON.stringify(request),
     });
 
     if (!response.ok) throw new Error("Failed to analyze about page");
-    const { summary: rawSummary } = await response.json();
-    const summary = rawSummary
-      .split("\n")
-      .map((para) => para.trim().replace(/\s+/g, " "))
-      .filter(Boolean)
-      .join("\r\n\r\n");
+    const body = (await response.json()) as LlmSummarizeResponse;
+    const { summary: rawSummary } = body;
+    const summary = formatText(rawSummary);
     return summary;
   } catch (error) {
     return `Error: ${error.message}`;
   }
 }
 
-async function handleSummarize(path: string, term: XTerm) {
+async function handleSummarize(path: string, term: XTerm): Promise<string> {
   if (!path || path.trim() === "") {
     return "Usage: ai summarize <path> (alias: 'sum')";
   }
   try {
     term.write("Summarizing...\r\n");
 
+    const request: LlmRequest = {
+      path,
+      type: "summarize",
+    };
     const response = await fetch("/api/ai", {
       method: "POST",
-      body: JSON.stringify({ path, type: "summarize" }),
+      body: JSON.stringify(request),
     });
     if (!response.ok) throw new Error("File or directory not found");
     // Handle streaming response
@@ -191,11 +243,7 @@ async function handleSummarize(path: string, term: XTerm) {
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      const summary = response.summary
-        .split("\n")
-        .map((para) => para.trim().replace(/\s+/g, " "))
-        .filter(Boolean)
-        .join("\r\n\r\n");
+      const summary = formatText(response.summary);
       term.write(summary);
     }
 
@@ -205,15 +253,20 @@ async function handleSummarize(path: string, term: XTerm) {
   }
 }
 
-async function handleAsk(path: string, question: string, term: XTerm) {
+async function handleAsk(path: string, question: string, term: XTerm): Promise<string> {
   if (!question || question.trim() === "" || !path || path.trim() === "") {
     return "Usage: ai ask <path> <question>";
   }
   try {
     term.write("Asking...\r\n");
+    const request: LlmRequest = {
+      path,
+      type: "ask",
+      question,
+    };
     const response = await fetch("/api/ai", {
       method: "POST",
-      body: JSON.stringify({ path, type: "ask", question }),
+      body: JSON.stringify(request),
     });
     if (!response.ok) throw new Error("File or directory not found");
 
@@ -222,11 +275,7 @@ async function handleAsk(path: string, question: string, term: XTerm) {
       const result = await reader?.read();
       if (result?.done) break;
       const response = JSON.parse(new TextDecoder().decode(result?.value));
-      const answer = response.answer
-        .split("\n")
-        .map((para) => para.trim().replace(/\s+/g, " "))
-        .filter(Boolean)
-        .join("\r\n\r\n");
+      const answer = formatText(response.answer);
       term.write(answer);
     }
     return "";

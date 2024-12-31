@@ -2,10 +2,10 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 
+import { ApiError } from "@/lib/api";
 const MARKDOWN_ROOT = join(process.cwd(), "app", "vfs", "llms");
 
 export async function GET(_: Request, { params }: { params: { slug: string[] } }) {
-  console.log(MARKDOWN_ROOT);
   const requestedFile = params.slug.join("/");
 
   const allowedFiles = ["terminal.md"];
@@ -24,6 +24,12 @@ export async function GET(_: Request, { params }: { params: { slug: string[] } }
     });
   } catch (error) {
     console.error("Error reading file:", error);
-    return new NextResponse("File not found", { status: 404 });
+    const errorResponse: ApiError = {
+      name: "FileNotFound",
+      message: "File not found",
+      status: 404,
+      details: error.message,
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 }
