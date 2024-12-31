@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xterm/xterm/css/xterm.css";
 
+import { FileViewer } from "@/components/file-viewer";
 import { LoadingSpinner } from "@/components/loading";
-import { FileViewer } from "../file-viewer";
 import { CommandOutput, commands } from "./command";
 import { CompletionState, createTabCompletionHandler, getCompletions } from "./completion";
 import { CommandHistory, createKeyHandlers } from "./keypress";
@@ -72,7 +72,9 @@ export default function Terminal() {
       lineHeight: 1.2,
       theme: {
         background: "#222c3d", // --sh-color-dark
-        foreground: "#e0e1dd", // --sh-color-lightest
+        foreground: "#97a7bb", // --sh-color-light
+        cursor: "#e0e1dd", // --sh-color-lightest
+        selectionForeground: "#e0e1dd", // --sh-color-lightest
       },
     });
 
