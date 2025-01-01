@@ -56,14 +56,11 @@ export class TerminalSpinner {
 
     // Save cursor position
     this.term.write("\x1b7");
-
     this.interval = setInterval(() => {
       // Restore cursor position and clear line
       this.term.write("\x1b8\x1b[K");
-
       // Write new frame
       this.term.write(`${this.frames[this.currentFrame]} ${this.message}`);
-
       this.currentFrame = (this.currentFrame + 1) % this.frames.length;
     }, 80);
   }
@@ -72,7 +69,6 @@ export class TerminalSpinner {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
-
       // Restore cursor position and clear line one last time
       this.term.write("\x1b8\x1b[K");
     }
@@ -380,8 +376,8 @@ export const commands: Record<string, Command> = {
 
 async function handleAbout(term: XTerm): Promise<string> {
   const spinner = new TerminalSpinner(term, "Analyzing about page...");
+  spinner.start();
   try {
-    spinner.start();
     const request: LlmRequest = {
       type: "about",
     };
@@ -398,6 +394,7 @@ async function handleAbout(term: XTerm): Promise<string> {
     spinner.stop();
     return summary;
   } catch (error) {
+    spinner.stop();
     return `Error: ${error.message}`;
   }
 }
@@ -408,9 +405,8 @@ async function handleSummarize(path: string, term: XTerm): Promise<string> {
   }
 
   const spinner = new TerminalSpinner(term, "Summarizing...");
+  spinner.start();
   try {
-    spinner.start();
-
     const request: LlmRequest = {
       path,
       type: "summarize",
@@ -433,6 +429,7 @@ async function handleSummarize(path: string, term: XTerm): Promise<string> {
     spinner.stop();
     return summary;
   } catch (error) {
+    spinner.stop();
     return `Error: ${error.message}`;
   }
 }
@@ -443,8 +440,8 @@ async function handleAsk(path: string, question: string, term: XTerm): Promise<s
   }
 
   const spinner = new TerminalSpinner(term, "Asking...");
+  spinner.start();
   try {
-    spinner.start();
     const request: LlmRequest = {
       path,
       type: "ask",
@@ -468,6 +465,7 @@ async function handleAsk(path: string, question: string, term: XTerm): Promise<s
     spinner.stop();
     return answer;
   } catch (error) {
+    spinner.stop();
     return `Error: ${error.message}`;
   }
 }

@@ -30,7 +30,6 @@ export class CommandHistory {
       return;
     }
     this.history.push(command);
-
     // Remove oldest command if we exceed maxSize
     if (this.history.length > this.maxSize) {
       this.history.shift();
@@ -127,7 +126,7 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
 
       // Execute command
       const [cmd, ...args] = command.split(" ");
-      if (commands[cmd]) {
+      if (cmd in commands) {
         const context = { currentPath: currentPath.current };
         Promise.resolve(commands[cmd].execute({ args, context, term }))
           .then((output) => {
