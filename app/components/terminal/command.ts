@@ -7,7 +7,10 @@ import { formatText } from "./utils";
 
 // Define valid webpage paths and their corresponding routes
 const VALID_SITE_REDIRECT_ROUTES = {
-  blog: (slug: string) => `/blog/${slug}`,
+  blog: {
+    index: () => "/blog",
+    post: (slug: string) => `/blog/${slug}`,
+  },
 };
 
 // Define viewable file extensions
@@ -275,14 +278,23 @@ export const commands: Record<string, Command> = {
           fullPath = args[0];
         }
 
-        // Check if this is a valid webpage path
-        const pathParts = fullPath.split("/");
-        // Check if `OPEN` contains a valid route
-        if (VALID_SITE_REDIRECT_ROUTES[pathParts[0]]) {
-          // Handle blog posts - redirect to webpage
-          const slug = pathParts[1]?.replace(/\.mdx?$/, "");
+        // Normalize the path by removing leading/trailing slashes and empty segments
+        const normalizedParts = fullPath.split("/").filter(Boolean);
+        // Check if `VALID_SITE_REDIRECT_ROUTES` contains a valid route
+        if (VALID_SITE_REDIRECT_ROUTES[normalizedParts[0]]) {
+          // Handle blog index route (matches "blog", "/blog", or "blog/")
+          if (normalizedParts.length === 1) {
+            router?.push(VALID_SITE_REDIRECT_ROUTES[normalizedParts[0]].index());
+            return {
+              content: `Opening ${fullPath} in new tab...`,
+              silent: false,
+            };
+          }
+
+          // Handle blog posts
+          const slug = normalizedParts[1]?.replace(/\.mdx?$/, "");
           if (slug) {
-            router?.push(VALID_SITE_REDIRECT_ROUTES[pathParts[0]](slug));
+            router?.push(VALID_SITE_REDIRECT_ROUTES[normalizedParts[0]].post(slug));
             return {
               content: `Opening ${fullPath} in new tab...`,
               silent: false,
