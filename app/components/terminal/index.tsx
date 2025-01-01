@@ -71,10 +71,10 @@ export default function Terminal() {
       fontSize: 15,
       lineHeight: 1.2,
       theme: {
-        background: "#222c3d", // --sh-color-dark
-        foreground: "#97a7bb", // --sh-color-light
-        cursor: "#e0e1dd", // --sh-color-lightest
-        selectionForeground: "#e0e1dd", // --sh-color-lightest
+        background: "#222c3d", // --color-theme-950
+        foreground: "#d0dae7", // --color-theme-200
+        cursor: "#eaeef4", // --color-theme-100
+        selectionForeground: "#eaeef4", // --color-theme-100
       },
     });
 
@@ -151,10 +151,10 @@ export default function Terminal() {
       <div className="relative h-[400px] w-full">
         <div
           ref={terminalRef}
-          className="z-0 h-full w-full rounded-lg overflow-hidden bg-neutral-800 px-1"
+          className="z-0 h-full w-full rounded-lg overflow-hidden bg-theme-950 px-1"
         />
         {!isReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+          <div className="absolute inset-0 flex items-center justify-center bg-theme-950">
             <LoadingSpinner />
           </div>
         )}

@@ -121,11 +121,11 @@ const timelineEvents: TimelineEvent[] = [
 ];
 
 const Timeline = ({ events }: { events: TimelineEvent[] }) => (
-  <div className="relative border-l-2 border-neutral-200 dark:border-neutral-800 pl-8 ml-4">
+  <div className="relative border-l-2 border-theme-200 dark:border-theme-800 pl-8 ml-4">
     {events.map((event) => (
       <div key={event.year} className="mb-12">
-        <div className="absolute w-3 h-3 bg-neutral-200 dark:bg-neutral-800 rounded-full -left-[7px] font-semibold"></div>
-        <time className="text-sm text-neutral-600 dark:text-neutral-400">{event.year}</time>
+        <div className="absolute w-3 h-3 bg-theme-200 dark:bg-theme-800 rounded-full -left-[7px] font-semibold"></div>
+        <time className="text-sm text-theme-600 dark:text-theme-300">{event.year}</time>
         <h3 className="font-medium mt-2">{event.title}</h3>
         <p className="mt-2">{event.content}</p>
       </div>
@@ -136,7 +136,7 @@ const Timeline = ({ events }: { events: TimelineEvent[] }) => (
 export default function Page(): React.ReactNode {
   return (
     <section>
-      <h1 className="mb-8 text-2xl font-semibold tracking-tighter">{headerInfo.title}</h1>
+      <h1 className="mb-8 text-2xl font-extrabold tracking-tighter">{headerInfo.title}</h1>
       {headerInfo.content.map((content, index) => (
         <p key={index} className="mb-4">
           {content}

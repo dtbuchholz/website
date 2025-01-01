@@ -1,95 +1,66 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-::selection {
-  background-color: #47a3f3;
-  color: #fefefe;
-}
-@layer theme {
-  @theme {
-    --default-transition-duration: 200ms;
-    --color-neutral-200: #e0e1dd;
-  }
-}
-
-:root {
-  --sh-class: #2d5e9d;
-  --sh-identifier: #354150;
-  --sh-sign: #8996a3;
-  --sh-string: #007f7a;
-  --sh-keyword: #e02518;
+@theme {
+  /* Syntax highlighting colors (for `sugar-high`) */
+  --sh-class: #4c97f8;
+  --sh-identifier: #eaeef4;
+  --sh-sign: #7695ba;
+  --sh-string: #0fa295;
+  --sh-keyword: #f47067;
   --sh-comment: #a19595;
   --sh-jsxliterals: #6266d1;
   --sh-property: #e25a1c;
   --sh-entity: #e25a1c;
 
-  /* Colors */
-  --sh-color-darkest: #0d1b2a;
-  --sh-color-dark: #222c3d;
-  --sh-color-medium: #415a77;
-  --sh-color-light: #778da9;
-  --sh-color-lighter: #97a7bb;
-  --sh-color-lightest: #e0e1dd;
+  /* Theme color palette */
+  --color-theme-50: #f5f7fa;
+  --color-theme-100: #eaeef4;
+  --color-theme-200: #d0dae7;
+  --color-theme-300: #a6bad3;
+  --color-theme-400: #7695ba;
+  --color-theme-500: #5578a2;
+  --color-theme-600: #426087;
+  --color-theme-700: #364d6e;
+  --color-theme-800: #30435c;
+  --color-theme-900: #2c3a4e;
+  --color-theme-950: #222c3d;
 
-  --sh-background: var(--sh-color-darkest);
-  --sh-foreground: var(--sh-color-lightest);
-  --sh-secondary: var(--color-neutral-900);
-  --color-neutral-800: var(--sh-color-dark);
-  --color-neutral-200: var(--sh-color-lightest);
-  --font-family: "JetBrains Mono", Consolas, monaco, monospace;
+  /* Font configuration */
+  --font-family-mono: "JetBrains Mono", Consolas, monaco, monospace;
+  --default-font-family: var(--font-family-mono);
+  --default-mono-font-family: var(--font-family-mono);
 
-  --font-weight-normal: 100;
-  --font-weight-medium: 600;
-  --font-weight-bold: 800;
-
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  font-style: normal;
-  background-color: var(--sh-background);
-  color: var(--sh-foreground);
+  /* Miscellaneous */
+  --default-transition-duration: 200ms;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --sh-class: #4c97f8;
-    --sh-identifier: white;
-    --sh-keyword: #f47067;
-    --sh-string: #0fa295;
-    --sh-secondary: var(--color-neutral-800);
-  }
   html {
     color-scheme: dark;
+    @apply bg-theme-900;
+    @apply text-theme-100;
   }
 }
 
 html {
   min-width: 360px;
+  @apply font-extralight;
 }
 
 hr {
-  @apply border-t border-neutral-200 dark:border-neutral-800 my-8;
+  @apply border-t border-theme-200 dark:border-theme-800 my-8;
 }
 
 .prose .anchor {
-  @apply absolute invisible no-underline;
-
-  margin-left: -1em;
-  padding-right: 0.5em;
-  width: 80%;
-  max-width: 700px;
-  cursor: pointer;
+  @apply absolute invisible no-underline ml-[-1em] pr-2 cursor-pointer;
 }
 
 .anchor:hover {
   @apply visible;
 }
-
-section a {
-  color: var(--sh-class);
-  @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em] hover:decoration-neutral-600 dark:hover:decoration-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-400;
-}
-
 .prose .anchor:after {
-  @apply text-neutral-300 dark:text-neutral-700;
+  @apply text-theme-600 dark:text-theme-300;
   content: "#";
 }
 
@@ -98,13 +69,69 @@ section a {
 }
 
 .prose pre {
-  @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
+  @apply bg-theme-500 dark:bg-theme-900 rounded-lg overflow-x-auto border border-theme-200 dark:border-theme-900 py-2 px-3;
+}
+
+.prose > h1,
+.prose > h2,
+.prose > h3,
+.prose > h4,
+.prose > h5,
+.prose > h6 {
+  font-weight: 900 !important;
+}
+
+/* Code block styling */
+.prose code,
+.file-viewer code {
+  @apply font-mono;
+}
+
+/* Syntax highlighting for specific elements */
+.token.class-name {
+  color: var(--color-syntax-class);
+}
+
+.token.identifier {
+  color: var(--color-syntax-identifier);
+}
+
+.token.operator,
+.token.punctuation {
+  color: var(--color-syntax-sign);
+}
+
+.token.string {
+  color: var(--color-syntax-string);
+}
+
+.token.keyword {
+  color: var(--color-syntax-keyword);
+}
+
+.token.comment {
+  color: var(--color-syntax-comment);
+}
+
+.token.jsx {
+  color: var(--color-syntax-jsx);
+}
+
+.token.property {
+  color: var(--color-syntax-property);
+}
+
+.token.entity {
+  color: var(--color-syntax-entity);
 }
 
 code {
-  @apply px-1 py-0.5 rounded-lg;
-  font-weight: var(--font-weight-medium);
+  @apply px-1 py-0.5 rounded-lg font-medium;
   font-size: 94%;
+}
+
+section a {
+  @apply underline transition-all text-theme-600 dark:text-theme-300 decoration-theme-400 dark:decoration-theme-500 underline-offset-2 decoration-[0.1em] hover:decoration-theme-700 dark:hover:decoration-theme-200 hover:text-theme-700 dark:hover:text-theme-200;
 }
 
 pre code {
@@ -115,7 +142,7 @@ pre code {
 .prose code:not(pre code),
 code,
 .prose pre {
-  background-color: var(--sh-secondary);
+  @apply bg-theme-950 text-theme-200;
 }
 
 code span {
@@ -128,7 +155,7 @@ code span {
 }
 
 .prose p {
-  @apply my-4 text-neutral-800 dark:text-neutral-200;
+  @apply my-4;
 }
 
 .prose h1 {
@@ -194,11 +221,11 @@ table {
 }
 
 .back-to-home {
-  @apply text-sm text-neutral-600 dark:text-neutral-400;
+  @apply text-sm text-theme-600 dark:text-theme-300;
 }
 
 .back-to-home:hover {
-  @apply text-neutral-800 dark:text-neutral-200;
+  @apply text-theme-800 dark:text-theme-200;
 }
 
 @font-face {

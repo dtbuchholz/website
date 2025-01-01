@@ -85,10 +85,10 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
         }}
       />
 
-      <h1 className="title font-semibold text-2xl tracking-tighter">{post.metadata.title}</h1>
+      <h1 className="title font-extrabold text-2xl tracking-tighter">{post.metadata.title}</h1>
       <h3 className="title text-lg my-4">{post.metadata.description}</h3>
       <div className="flex justify-between items-center my-4 text-sm">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-theme-600 dark:text-theme-300">
           {formatDate(post.metadata.publishedAt)}{" "}
           {post.metadata.sourceCode && (
             <>

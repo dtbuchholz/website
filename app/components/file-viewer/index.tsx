@@ -73,17 +73,17 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
   }, [path]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/50">
       <div
         ref={contentRef}
-        className="relative w-full max-w-4xl h-[80vh] bg-neutral-900 rounded-lg flex flex-col"
+        className="relative w-full max-w-4xl h-[80vh] bg-theme-950 rounded-lg flex flex-col shadow-lg shadow-theme-950"
       >
         {/* Header */}
         <div className="flex justify-between items-center p-2">
-          <span className="text-neutral-200 text-sm">{path}</span>
+          <span className="text-theme-200 text-sm">{path}</span>
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 cursor-pointer transition-all rounded-md p-1 inline-flex items-center justify-center dark:text-neutral-300 dark:hover:text-neutral-100 focus:outline-non"
+            className="absolute top-2 right-2 cursor-pointer transition-all rounded-md p-1 inline-flex items-center justify-center dark:text-theme-300 dark:hover:text-theme-100 focus:outline-non"
           >
             <span className="sr-only">Close menu</span>
             <svg
@@ -103,9 +103,9 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
             </svg>
           </button>
         </div>
-        <div className="border-b border-neutral-600" />
+        <div className="border-b border-theme-900" />
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-4 bg-theme-900">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <LoadingSpinner />

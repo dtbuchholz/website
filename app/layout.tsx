@@ -1,7 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
@@ -43,23 +41,14 @@ export const metadata: Metadata = {
   },
 };
 
-const cx = (...classes: string[]) => classes.filter(Boolean).join(" ");
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = headers().get("x-nonce");
   return (
-    <html
-      lang="en"
-      className={cx(
-        "h-full w-full dark:text-white dark:bg-black",
-        GeistSans.variable,
-        GeistMono.variable
-      )}
-    >
+    <html lang="en" className="h-full w-full">
       <head>
         <script nonce={nonce || ""} />
       </head>
-      <body className="h-full w-full flex flex-col">
+      <body className="h-full w-full flex flex-col px-2">
         <main className="flex flex-col flex-1 w-full max-w-4xl mt-8 mx-auto px-4">
           <Navbar />
           {children}

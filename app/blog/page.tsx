@@ -8,7 +8,7 @@ export const metadata = {
 export default function Page(): React.ReactNode {
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Writing</h1>
+      <h1 className="font-extrabold text-2xl mb-8 tracking-tighter">Writing</h1>
       <BlogPosts />
     </section>
   );

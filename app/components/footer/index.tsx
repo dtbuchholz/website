@@ -13,15 +13,15 @@ export default function Footer() {
   return (
     <footer className="mt-auto mb-0 py-4">
       <div className="flex justify-between items-center">
-        <ul className="text-neutral-600 dark:text-neutral-300">
+        <ul className="text-theme-600 dark:text-theme-300">
           <li>
             <p className="h-7">© {new Date().getFullYear()} Dan Buchholz</p>
           </li>
         </ul>
-        <ul className="flex flex-row space-x-4 text-neutral-600 dark:text-neutral-300">
+        <ul className="flex flex-row space-x-4 text-theme-600 dark:text-theme-300">
           <li>
             <a
-              className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
+              className="flex items-center transition-all hover:text-theme-800 dark:hover:text-theme-100"
               rel="noopener noreferrer"
               target="_blank"
               href="/rss"

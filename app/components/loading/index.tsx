@@ -20,6 +20,6 @@ export function LoadingSpinner({ time = 1000 }: LoadingSpinnerProps) {
   if (!show) return null;
 
   return (
-    <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-200 border-t-transparent"></div>
+    <div className="animate-spin rounded-full h-8 w-8 border-2 border-theme-200 border-t-transparent"></div>
   );
 }
