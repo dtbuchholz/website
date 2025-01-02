@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { formatDate, getBlogPosts } from "@/blog/utils";
 import { MDX } from "@/components/mdx";
+import { formatDate, getBlogPosts } from "@/lib/content";
 import { baseUrl } from "@/sitemap";
 
 type PageParams = {

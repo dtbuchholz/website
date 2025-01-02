@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { formatDate, getBlogPosts } from "@/blog/utils";
+import { formatDate, getBlogPosts } from "@/lib/content";
 
 export function BlogPosts({ count }: { count?: number }) {
   const allBlogs = getBlogPosts();

@@ -3,10 +3,12 @@ import { extname, join } from "path";
 import { NextResponse } from "next/server";
 
 import { ApiError } from "@/lib/api";
+import { BLOG_POSTS_DIR, NOTES_DIR } from "@/lib/content";
 
-// Define the root directory for terminal access
+// Define the root directory and ancillary paths for terminal access
 const TERMINAL_ROOT = join(process.cwd(), "app", "vfs");
-const BLOG_POSTS_PATH = join(process.cwd(), "app", "blog", "posts");
+const BLOG_POSTS_PATH = BLOG_POSTS_DIR;
+const NOTES_PATH = NOTES_DIR;
 
 export type FsItem = {
   name: string;
@@ -51,6 +53,12 @@ async function getDirectoryContents(path: string, isRoot = false): Promise<FsIte
       extension: "",
       fileContents: "",
     });
+    items.push({
+      name: "notes",
+      type: "directory",
+      extension: "",
+      fileContents: "",
+    });
   }
 
   return items;
@@ -73,6 +81,32 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | Api
 
       // Security check for the actual path
       if (!actualPath.startsWith(BLOG_POSTS_PATH)) {
+        const errorResponse: ApiError = {
+          name: "AccessDenied",
+          message: "Access denied",
+          status: 403,
+        };
+        return NextResponse.json(errorResponse, { status: 403 });
+      }
+
+      const stats = await stat(actualPath);
+
+      if (stats.isDirectory()) {
+        const items = await getDirectoryContents(actualPath);
+        return NextResponse.json(items);
+      }
+
+      // Handle single file
+      const fileItem = await getFileItem(actualPath);
+      return NextResponse.json([fileItem]);
+    }
+
+    if (/^\/?(notes\/?)/i.test(requestedPath)) {
+      const relativePath = requestedPath.replace("notes", "");
+      const actualPath = join(NOTES_PATH, relativePath);
+
+      // Security check for the actual path
+      if (!actualPath.startsWith(NOTES_PATH)) {
         const errorResponse: ApiError = {
           name: "AccessDenied",
           message: "Access denied",

@@ -5,7 +5,7 @@ import { ComponentProps } from "react";
 import React from "react";
 import { highlight } from "sugar-high";
 
-import { slugify } from "./utils";
+import { slugify } from "@/lib/content";
 
 type LinkProps = ComponentProps<typeof NextLink> & {
   href: string;
