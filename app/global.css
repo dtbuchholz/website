@@ -2,17 +2,6 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  /* Syntax highlighting colors (for `sugar-high`) */
-  --sh-class: #4c97f8;
-  --sh-identifier: #eaeef4;
-  --sh-sign: #7695ba;
-  --sh-string: #0fa295;
-  --sh-keyword: #f47067;
-  --sh-comment: #a19595;
-  --sh-jsxliterals: #6266d1;
-  --sh-property: #e25a1c;
-  --sh-entity: #e25a1c;
-
   /* Theme color palette */
   --color-theme-50: #f5f7fa;
   --color-theme-100: #eaeef4;
@@ -25,6 +14,17 @@
   --color-theme-800: #30435c;
   --color-theme-900: #2c3a4e;
   --color-theme-950: #222c3d;
+
+  /* Syntax highlighting colors (for `sugar-high`) */
+  --sh-class: var(--color-theme-300);
+  --sh-identifier: var(--color-theme-100);
+  --sh-sign: var(--color-theme-500);
+  --sh-string: #49c2a1; /* teal/green */
+  --sh-keyword: #fa938e; /* pinkish-salmon */
+  --sh-comment: #7b879f; /* muted gray-blue */
+  --sh-jsxliterals: #b2a2e8; /* lavender/purple */
+  --sh-property: #e6a372; /* warm orange  */
+  --sh-entity: #e6a372; /* warm orange  */
 
   /* Font configuration */
   --font-family-mono: "JetBrains Mono", Consolas, monaco, monospace;
