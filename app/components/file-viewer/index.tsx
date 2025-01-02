@@ -105,7 +105,7 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
         </div>
         <div className="border-b border-theme-900" />
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-auto p-4 bg-theme-900">
+        <div className="flex-1 overflow-auto p-4 rounded-b-lg bg-theme-900">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <LoadingSpinner />
