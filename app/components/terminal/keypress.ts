@@ -117,8 +117,38 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
 
   const handleEnter = () => {
     const command = currentCommand.current.trim();
-    term.writeln("");
 
+    // If we have an active completion, just append it to the current command
+    if (completionState.current) {
+      const { matches, currentIndex, currentPath, isDirectory } = completionState.current;
+      const selectedMatch = matches[currentIndex];
+
+      // Clear the completion display
+      term.write("\x1b[K");
+      if (isDirectory) {
+        // If it's a directory, update the command but don't execute
+        const [cmd, ...parts] = command.split(" ");
+        parts.pop(); // Remove the incomplete part
+        const newPath = currentPath + selectedMatch;
+        currentCommand.current = `${cmd} ${newPath}`;
+        // clear the existing line
+        term.write("\r\x1b[K$ " + currentCommand.current);
+      } else {
+        // If it's a file, execute the command
+        term.write("\r\n");
+        executeCommand(command);
+      }
+
+      completionState.current = null;
+      return;
+    }
+
+    // Normal command execution
+    term.writeln("");
+    executeCommand(command);
+  };
+
+  const executeCommand = (command: string) => {
     if (command) {
       // Add to history if it's not the same as the last command
       commandHistory.current.add(command);
@@ -220,17 +250,17 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
       return;
     }
 
+    if (data === "\r") {
+      handleEnter();
+      return;
+    }
+
     if (completionState.current) {
       completionState.current = null;
     }
 
     if (isArrowKey) {
       handleArrowKeys(data);
-      return;
-    }
-
-    if (data === "\r") {
-      handleEnter();
       return;
     }
 

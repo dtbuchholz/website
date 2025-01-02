@@ -9,6 +9,8 @@ export type CompletionState = {
   currentIndex: number;
   originalInput: string;
   linePositionY: number;
+  currentPath: string;
+  isDirectory: boolean;
 };
 
 type TabCompletionDeps = {
@@ -21,6 +23,7 @@ type TabCompletionDeps = {
 
 export const getCompletions = async (path: string, currentPath: string[]): Promise<string[]> => {
   try {
+    // For paths with slashes, we need to preserve the path structure
     const searchPath = path.includes("/")
       ? path.slice(0, path.lastIndexOf("/") + 1)
       : currentPath.join("/");
@@ -31,9 +34,15 @@ export const getCompletions = async (path: string, currentPath: string[]): Promi
     const contents = (await response.json()) as FsItem[];
     const searchTerm = path.split("/").pop() || "";
 
+    // Filter and map the results, preserving the path prefix for nested completions
     return contents
       .filter(({ name }) => name.toLowerCase().startsWith(searchTerm.toLowerCase()))
-      .map(({ name, type }) => (type === "directory" ? `${name}/` : name))
+      .map(({ name, type }) => {
+        const completionPath = path.includes("/")
+          ? `${path.slice(0, path.lastIndexOf("/") + 1)}${name}`
+          : name;
+        return type === "directory" ? `${completionPath}/` : completionPath;
+      })
       .sort((a: string, b: string) => a.localeCompare(b));
   } catch {
     return [];
@@ -52,11 +61,18 @@ export function createTabCompletionHandler(deps: TabCompletionDeps): (command: s
         ? term!.buffer.active.cursorY + 1
         : term!.buffer.active.length;
 
+    // Get the current path being completed
+    const currentPathBeingCompleted = partial.includes("/")
+      ? partial.slice(0, partial.lastIndexOf("/") + 1)
+      : "";
+
     completionState.current = {
       matches,
       currentIndex: 0,
       originalInput: cmd,
       linePositionY: posY,
+      currentPath: currentPathBeingCompleted,
+      isDirectory: matches[0].endsWith("/"),
     };
 
     // Show matches and select first one
