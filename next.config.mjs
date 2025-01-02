@@ -4,6 +4,7 @@ const nextConfig = {
     outputFileTracingIncludes: {
       "/api/fs": ["./app/blog/**/*", "./app/about/**/*", "./app/vfs/**/*", "./research/**/*"],
       "/api/ai": ["./app/blog/**/*", "./app/about/**/*", "./app/vfs/**/*", "./research/**/*"],
+      "/api/llms": ["./llms/**/*"],
     },
   },
   // Add these to help debug and ensure proper file handling

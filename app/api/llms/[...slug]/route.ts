@@ -4,15 +4,10 @@ import { NextResponse } from "next/server";
 
 import { ApiError } from "@/lib/api";
 
-const MARKDOWN_ROOT = join(process.cwd(), "app", "vfs", "llms");
+const MARKDOWN_ROOT = join(process.cwd(), "llms");
 
 export async function GET(_: Request, { params }: { params: { slug: string[] } }) {
   const requestedFile = params.slug.join("/");
-
-  const allowedFiles = ["terminal.md"];
-  if (!allowedFiles.includes(requestedFile)) {
-    return new NextResponse("Not found", { status: 404 });
-  }
 
   try {
     const pathToFile = join(MARKDOWN_ROOT, requestedFile);
