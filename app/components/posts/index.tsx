@@ -24,10 +24,10 @@ export function BlogPosts({ count }: { count?: number }) {
             <div className="card">
               <div className="w-full flex flex-col sm:flex-row space-x-0 sm:space-x-2">
                 <p className="text-theme-600 dark:text-theme-300 tabular-nums shrink-0 mr-3">
-                  {formatDate(post.metadata.publishedAt, false)}:
+                  {formatDate(post.metadata.publishedAt, false)}
                 </p>
                 <p className="text-theme-900 dark:text-theme-100 tracking-tight ">
-                  {post.metadata.title}
+                  {post.metadata.title}: {post.metadata.description}
                 </p>
               </div>
             </div>
