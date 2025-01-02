@@ -120,7 +120,7 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
 
     // If we have an active completion, just append it to the current command
     if (completionState.current) {
-      const { matches, currentIndex, currentPath, isDirectory } = completionState.current;
+      const { matches, currentIndex, isDirectory } = completionState.current;
       const selectedMatch = matches[currentIndex];
 
       // Clear the completion display
@@ -129,10 +129,8 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
         // If it's a directory, update the command but don't execute
         const [cmd, ...parts] = command.split(" ");
         parts.pop(); // Remove the incomplete part
-        const newPath = currentPath + selectedMatch;
+        const newPath = selectedMatch;
         currentCommand.current = `${cmd} ${newPath}`;
-        // clear the existing line
-        term.write("\r\x1b[K$ " + currentCommand.current);
       } else {
         // If it's a file, execute the command
         term.write("\r\n");

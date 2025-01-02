@@ -207,7 +207,8 @@ export const commands: Record<string, Command> = {
         const contents = (await response.json()) as FsItem[];
 
         // Check if the target itself is a file (not its contents)
-        const targetItem = contents.find((item) => item.name === path.replace(/\/$/, ""));
+        const pathSegment = path.split("/").pop()?.replace(/\/$/, "");
+        const targetItem = contents.find((item) => item.name === pathSegment);
         if (targetItem?.type === "file") {
           return {
             content: `cd: ${path}: Not a directory`,
