@@ -39,7 +39,9 @@ export function parseFrontmatter(fileContent: string): Frontmatter {
 }
 
 export function getMDXFiles(dir: string): string[] {
-  return fs.readdirSync(dir).filter((file) => path.extname(file) === ".mdx");
+  return fs
+    .readdirSync(dir)
+    .filter((file) => path.extname(file) === ".mdx" || path.extname(file) === ".md");
 }
 
 export function readMDXFile(filePath: string): Frontmatter {
