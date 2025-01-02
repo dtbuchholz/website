@@ -3,12 +3,14 @@ import { extname, join } from "path";
 import { NextResponse } from "next/server";
 
 import { ApiError } from "@/lib/api";
-import { BLOG_POSTS_DIR, NOTES_DIR } from "@/lib/content";
+import { BLOG_POSTS_DIR, NOTES_DIR, PROJECTS_DIR } from "@/lib/content";
 
-// Define the root directory and ancillary paths for terminal access
-const TERMINAL_ROOT = join(process.cwd(), "app", "vfs");
-const BLOG_POSTS_PATH = BLOG_POSTS_DIR;
-const NOTES_PATH = NOTES_DIR;
+// Define allowed root directories
+const ALLOWED_DIRS = {
+  blog: BLOG_POSTS_DIR,
+  notes: NOTES_DIR,
+  projects: PROJECTS_DIR,
+} as const;
 
 export type FsItem = {
   name: string;
@@ -17,145 +19,89 @@ export type FsItem = {
   fileContents: string | null;
 };
 
-async function getFileItem(path: string, name?: string): Promise<FsItem> {
-  const fileName = name || path.split("/").pop() || "";
-  return {
-    name: fileName,
-    type: "file",
-    extension: extname(fileName),
-    fileContents: await readFile(path, "utf-8"),
-  };
-}
-
 async function getDirectoryContents(path: string, isRoot = false): Promise<FsItem[]> {
+  // Handle root directory specially
+  if (isRoot) {
+    return Object.keys(ALLOWED_DIRS).map((name) => ({
+      name,
+      type: "directory",
+      extension: "",
+      fileContents: null,
+    }));
+  }
+
   const contents = await readdir(path);
-  const items = await Promise.all(
+  return Promise.all(
     contents.map(async (name) => {
       const fullPath = join(path, name);
       const itemStats = await stat(fullPath);
-      const type = itemStats.isDirectory() ? "directory" : "file";
-      const extension = extname(name);
-      const fileContents = type === "file" ? await readFile(fullPath, "utf-8") : null;
       return {
         name,
-        type,
-        extension,
-        fileContents,
+        type: itemStats.isDirectory() ? "directory" : "file",
+        extension: extname(name),
+        fileContents: itemStats.isDirectory() ? null : await readFile(fullPath, "utf-8"),
       };
     })
   );
-
-  // Add virtual blog directory at root level
-  if (isRoot) {
-    items.push({
-      name: "blog",
-      type: "directory",
-      extension: "",
-      fileContents: "",
-    });
-    items.push({
-      name: "notes",
-      type: "directory",
-      extension: "",
-      fileContents: "",
-    });
-  }
-
-  return items;
 }
 
 export async function GET(request: Request): Promise<NextResponse<FsItem[] | ApiError>> {
   const { searchParams } = new URL(request.url);
-  let requestedPath = searchParams.get("path") || "/";
-  // Decode the URL-encoded path
+  let requestedPath = searchParams.get("path") || "";
   requestedPath = decodeURIComponent(requestedPath);
-  // Normalize path: remove trailing slash unless it's root
-  requestedPath = requestedPath === "/" ? "/" : requestedPath.replace(/\/$/, "");
+  requestedPath = requestedPath.replace(/^\/+|\/+$/g, ""); // Remove leading/trailing slashes
 
   try {
-    // Handle virtual paths
-    if (/^\/?(blog\/?)/i.test(requestedPath)) {
-      // Redirect to actual blog posts directory
-      const relativePath = requestedPath.replace("blog", "");
-      const actualPath = join(BLOG_POSTS_PATH, relativePath);
-
-      // Security check for the actual path
-      if (!actualPath.startsWith(BLOG_POSTS_PATH)) {
-        const errorResponse: ApiError = {
-          name: "AccessDenied",
-          message: "Access denied",
-          status: 403,
-        };
-        return NextResponse.json(errorResponse, { status: 403 });
-      }
-
-      const stats = await stat(actualPath);
-
-      if (stats.isDirectory()) {
-        const items = await getDirectoryContents(actualPath);
-        return NextResponse.json(items);
-      }
-
-      // Handle single file
-      const fileItem = await getFileItem(actualPath);
-      return NextResponse.json([fileItem]);
+    // Handle empty path or root
+    if (!requestedPath) {
+      return NextResponse.json(await getDirectoryContents("", true));
     }
 
-    if (/^\/?(notes\/?)/i.test(requestedPath)) {
-      const relativePath = requestedPath.replace("notes", "");
-      const actualPath = join(NOTES_PATH, relativePath);
+    // Extract the root directory and remaining path
+    const [rootDir, ...remainingPath] = requestedPath.split("/");
+    const basePath = ALLOWED_DIRS[rootDir as keyof typeof ALLOWED_DIRS];
 
-      // Security check for the actual path
-      if (!actualPath.startsWith(NOTES_PATH)) {
-        const errorResponse: ApiError = {
-          name: "AccessDenied",
-          message: "Access denied",
-          status: 403,
-        };
-        return NextResponse.json(errorResponse, { status: 403 });
-      }
-
-      const stats = await stat(actualPath);
-
-      if (stats.isDirectory()) {
-        const items = await getDirectoryContents(actualPath);
-        return NextResponse.json(items);
-      }
-
-      // Handle single file
-      const fileItem = await getFileItem(actualPath);
-      return NextResponse.json([fileItem]);
+    if (!basePath) {
+      return NextResponse.json(
+        { name: "DirectoryNotFound", message: "No such file or directory", status: 404 },
+        { status: 404 }
+      );
     }
 
-    // Handle regular paths
-    const normalizedPath = join(TERMINAL_ROOT, requestedPath).replace(/\\/g, "/");
-    if (!normalizedPath.startsWith(TERMINAL_ROOT)) {
-      const errorResponse: ApiError = {
-        name: "AccessDenied",
-        message: "Access denied",
-        status: 403,
-      };
-      return NextResponse.json(errorResponse, { status: 403 });
+    // Construct the full path
+    const fullPath = join(basePath, ...remainingPath);
+
+    // Security check: ensure path doesn't escape allowed directory
+    if (!fullPath.startsWith(basePath)) {
+      return NextResponse.json(
+        { name: "AccessDenied", message: "Access denied", status: 403 },
+        { status: 403 }
+      );
     }
 
-    // Check if path exists
-    const stats = await stat(normalizedPath);
+    const stats = await stat(fullPath);
 
     if (stats.isDirectory()) {
-      const items = await getDirectoryContents(normalizedPath, requestedPath === "/");
-      return NextResponse.json(items);
+      return NextResponse.json(await getDirectoryContents(fullPath));
     }
 
     // Handle single file
-    const fileItem = await getFileItem(normalizedPath);
-    return NextResponse.json([fileItem]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return NextResponse.json([
+      {
+        name: fullPath.split("/").pop() || "",
+        type: "file",
+        extension: extname(fullPath),
+        fileContents: await readFile(fullPath, "utf-8"),
+      },
+    ]);
   } catch (error: any) {
-    const errorResponse: ApiError = {
-      name: "DirectoryNotFound",
-      message: `Directory not found: ${error.message}`,
-      status: 404,
-    };
-    return NextResponse.json(errorResponse, { status: 404 });
+    return NextResponse.json(
+      {
+        name: "DirectoryNotFound",
+        message: "No such file or directory",
+        status: 404,
+      },
+      { status: 404 }
+    );
   }
 }

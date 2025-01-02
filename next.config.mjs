@@ -2,8 +2,8 @@
 const nextConfig = {
   experimental: {
     outputFileTracingIncludes: {
-      "/api/fs": ["./app/blog/**/*", "./app/about/**/*", "./app/vfs/**/*", "./research/**/*"],
-      "/api/ai": ["./app/blog/**/*", "./app/about/**/*", "./app/vfs/**/*", "./research/**/*"],
+      "/api/fs": ["./app/about/**/*", "./research/**/*", "./projects/**/*"],
+      "/api/ai": ["./app/about/**/*", "./research/**/*", "./projects/**/*"],
       "/api/llms": ["./llms/**/*"],
     },
   },

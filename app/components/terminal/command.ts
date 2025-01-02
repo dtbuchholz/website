@@ -11,6 +11,10 @@ const VALID_SITE_REDIRECT_ROUTES = {
     index: () => "/blog",
     post: (slug: string) => `/blog/${slug}`,
   },
+  projects: {
+    index: () => "/projects",
+    post: (slug: string) => `/projects/${slug}`,
+  },
 };
 
 // Define viewable file extensions

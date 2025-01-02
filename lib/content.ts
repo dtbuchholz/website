@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 
+export const PROJECTS_DIR = path.join(process.cwd(), "projects");
 export const RESEARCH_DIR = process.env.RESEARCH_DIR || path.join(process.cwd(), "research");
 export const BLOG_POSTS_DIR = path.join(RESEARCH_DIR, "posts");
 export const NOTES_DIR = path.join(RESEARCH_DIR, "notes");
@@ -25,6 +26,9 @@ export type MDXData = {
 };
 
 export function formatDate(date: string, includeRelative = false): string {
+  if (!date) {
+    return "";
+  }
   const currentDate = new Date();
   if (!date.includes("T")) {
     date = `${date}T00:00:00`;
@@ -121,4 +125,8 @@ export function getBlogPosts(): MDXData[] {
 
 export function getNotes() {
   return getMDXData(NOTES_DIR);
+}
+
+export function getProjects() {
+  return getMDXData(PROJECTS_DIR);
 }
