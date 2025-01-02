@@ -1,6 +1,6 @@
 import { Terminal as XTerm } from "@xterm/xterm";
 
-import { Command, CommandOutput } from "./command";
+import { Command, CommandOutput, COMMANDS_WITH_SUBCOMMANDS } from "./command";
 import { CompletionState } from "./completion";
 
 type KeyHandlerDeps = {
@@ -127,10 +127,21 @@ export function createKeyHandlers(deps: KeyHandlerDeps): (data: string) => void 
       term.write("\x1b[K");
       if (isDirectory) {
         // If it's a directory, update the command but don't execute
-        const [cmd, ...parts] = command.split(" ");
-        parts.pop(); // Remove the incomplete part
-        const newPath = selectedMatch;
-        currentCommand.current = `${cmd} ${newPath}`;
+        const parts = command.split(" ");
+
+        // For ai commands, preserve the subcommand
+        if (COMMANDS_WITH_SUBCOMMANDS.includes(parts[0]) && parts.length > 1) {
+          const [cmd, subcommand, ...rest] = parts;
+          rest.pop(); // Remove the incomplete part
+          currentCommand.current = `${cmd} ${subcommand} ${selectedMatch}`;
+        } else {
+          const [cmd, ...rest] = parts;
+          rest.pop();
+          currentCommand.current = `${cmd} ${selectedMatch}`;
+        }
+
+        // Clear the existing line
+        term.write("\r\x1b[K$ " + currentCommand.current);
       } else {
         // If it's a file, execute the command
         term.write("\r\n");

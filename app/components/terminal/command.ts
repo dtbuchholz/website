@@ -20,6 +20,8 @@ const VALID_SITE_REDIRECT_ROUTES = {
 // Define viewable file extensions
 const VIEWABLE_EXTENSIONS = [".md", ".mdx", ".txt"];
 
+export const COMMANDS_WITH_SUBCOMMANDS = ["ai"];
+
 export type CommandContext = {
   currentPath: string[];
 };

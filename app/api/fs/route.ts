@@ -94,7 +94,9 @@ export async function GET(request: Request): Promise<NextResponse<FsItem[] | Api
         fileContents: await readFile(fullPath, "utf-8"),
       },
     ]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
+    console.error("Error handling fs api request:", error);
     return NextResponse.json(
       {
         name: "DirectoryNotFound",

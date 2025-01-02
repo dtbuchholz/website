@@ -106,17 +106,16 @@ export function createTabCompletionHandler(deps: TabCompletionDeps): (command: s
     term?.write("\r\x1b[K$ " + newCommand);
   };
 
-  const handleAiCompletion = async (cmd: string, args: string[]) => {
-    // No subcommand yet, don't complete
-    if (args.length === 0) return;
+  const handleAiCompletion = async (cmd: string) => {
+    const fullCommand = currentCommand.current.split(" ");
+    if (fullCommand.length <= 1) return;
 
-    // First argument should be subcommand
-    const [subcommand, ...restArgs] = args;
+    // Get the subcommand (should be the second part)
+    const subcommand = fullCommand[1];
     if (!["sum", "summarize", "ask"].includes(subcommand)) return;
 
-    // Get the partial path from the last argument
-    const partial = restArgs[restArgs.length - 1] || "";
-
+    // Get the partial path (everything after the subcommand)
+    const partial = fullCommand.slice(2).join(" ") || "";
     if (!completionState.current) {
       await handleFirstTabPress(cmd, subcommand, partial);
     } else {
@@ -140,7 +139,7 @@ export function createTabCompletionHandler(deps: TabCompletionDeps): (command: s
     if (!COMPLETABLE_COMMANDS.includes(cmd)) return;
 
     if (cmd === "ai") {
-      await handleAiCompletion(cmd, args);
+      await handleAiCompletion(cmd);
     } else {
       await handleRegularCompletion(cmd, args);
     }

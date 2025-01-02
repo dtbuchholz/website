@@ -221,7 +221,7 @@ export async function POST(req: Request): Promise<NextResponse<LlmResponse | Api
     return typeHandler(client, type, content, question);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error handling ai request:", error);
+    console.error("Error handling ai api request:", error);
     if (error instanceof ApiError) {
       return NextResponse.json(
         {
