@@ -130,6 +130,13 @@ function RoundedImage(props: ImageProps) {
 }
 
 function Code({ children, ...props }: CodeProps) {
+  // Check if this is a code block (inside pre) or inline code
+  const isInline = !props.className?.includes("language-");
+  if (isInline) {
+    // For inline code, use simpler styling without syntax highlighting
+    return <code {...props}>{children}</code>;
+  }
+  // For code blocks, use sugar-high syntax highlighting
   const codeHTML = highlight(children);
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
 }
