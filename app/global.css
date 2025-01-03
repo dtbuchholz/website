@@ -130,7 +130,7 @@ code {
   font-size: 94%;
 }
 
-section a {
+.prose a {
   @apply underline transition-all text-theme-600 dark:text-theme-300 decoration-theme-400 dark:decoration-theme-500 underline-offset-2 decoration-[0.1em] hover:decoration-theme-700 dark:hover:decoration-theme-200 hover:text-theme-700 dark:hover:text-theme-200;
 }
 

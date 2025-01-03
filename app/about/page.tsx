@@ -135,7 +135,7 @@ const Timeline = ({ events }: { events: TimelineEvent[] }) => (
 
 export default function Page(): React.ReactNode {
   return (
-    <section>
+    <section className="prose">
       <h1 className="mb-8 text-2xl font-extrabold tracking-tighter">{headerInfo.title}</h1>
       {headerInfo.content.map((content, index) => (
         <p key={index} className="mb-4">

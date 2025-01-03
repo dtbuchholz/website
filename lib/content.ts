@@ -10,6 +10,7 @@ export type Metadata = {
   title: string;
   publishedAt: string;
   description: string;
+  tags?: string[];
   image?: string;
   sourceCode?: string;
 };
@@ -76,7 +77,12 @@ export function parseFrontmatter(fileContent: string): Frontmatter {
     const [key, ...valueArr] = line.split(": ");
     let value = valueArr.join(": ").trim();
     value = value.replace(/^['"](.*)['"]$/, "$1"); // Remove quotes
-    metadata[key.trim() as keyof Metadata] = value;
+    const validKey = key.trim() as keyof Metadata;
+    if (validKey === "tags") {
+      metadata.tags = value.split(",").map((tag) => tag.trim());
+    } else {
+      metadata[validKey] = value;
+    }
   });
 
   return { metadata: metadata as Metadata, content };
@@ -123,10 +129,10 @@ export function getBlogPosts(): MDXData[] {
   return getMDXData(BLOG_POSTS_DIR);
 }
 
-export function getNotes() {
+export function getNotes(): MDXData[] {
   return getMDXData(NOTES_DIR);
 }
 
-export function getProjects() {
+export function getProjects(): MDXData[] {
   return getMDXData(PROJECTS_DIR);
 }

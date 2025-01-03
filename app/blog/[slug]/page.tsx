@@ -61,7 +61,7 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
   }
 
   return (
-    <section className="w-full">
+    <section className="w-full prose mb-16">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -92,7 +92,10 @@ export default function Blog({ params }: { params: PageParams }): React.ReactNod
           {formatDate(post.metadata.publishedAt)}{" "}
           {post.metadata.sourceCode && (
             <>
-              | <a href={post.metadata.sourceCode}>source code</a>
+              |{" "}
+              <Link href={post.metadata.sourceCode} target="_blank">
+                source code
+              </Link>
             </>
           )}
         </p>
