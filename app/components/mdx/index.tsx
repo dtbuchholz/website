@@ -3,6 +3,7 @@ import NextLink from "next/link";
 import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
 import { ComponentProps } from "react";
 import React from "react";
+import { FaCircleInfo, FaCircleXmark, FaLightbulb, FaTriangleExclamation } from "react-icons/fa6";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import { highlight } from "sugar-high";
@@ -23,6 +24,72 @@ type TableProps = {
 type CodeProps = ComponentProps<"code"> & {
   children: string;
 };
+
+type CalloutProps = {
+  children: React.ReactNode;
+  type?: "note" | "warning" | "error";
+};
+
+function Callout({ children, type = "note" }: CalloutProps) {
+  const typeToIcon = {
+    note: <FaCircleInfo className="text-theme-200" size={18} />,
+    tip: <FaLightbulb className="text-theme-200" size={18} />,
+    warning: <FaTriangleExclamation className="text-theme-200" size={18} />,
+    error: <FaCircleXmark className="text-theme-200" size={18} />,
+  };
+
+  return (
+    <div className="my-6 flex gap-2 rounded-lg border border-theme-400 dark:border-theme-700 bg-theme-200 dark:bg-theme-800 p-4">
+      <div className="select-none text-xl">{typeToIcon[type]}</div>
+      <div className="w-full text-theme-900 dark:text-theme-100 [&>p]:mt-0">{children}</div>
+    </div>
+  );
+}
+
+function BlockQuote({ children }: { children: React.ReactNode }) {
+  const content = React.Children.toArray(children);
+  const firstChild = content[1];
+
+  if (React.isValidElement(firstChild)) {
+    const childContent = firstChild.props?.children;
+    // Check if the first part is a string that starts with [!
+    const firstPart = Array.isArray(childContent) ? childContent[0] : childContent;
+
+    if (typeof firstPart === "string" && firstPart.startsWith("[!")) {
+      const match = firstPart.match(/\[!(.*?)\]/);
+      if (match) {
+        const type = match[1].toLowerCase();
+        // Remove the [!TYPE] prefix from only the first string
+        const cleanContent = content
+          .filter((child, i) => i > 0)
+          .map((child, i) => {
+            if (i === 0 && React.isValidElement(child)) {
+              const newChildren = Array.isArray(child.props.children)
+                ? [
+                    child.props.children[0].replace(/\[!.*?\]\s*/, ""),
+                    ...child.props.children.slice(1),
+                  ]
+                : child.props.children.replace(/\[!.*?\]\s*/, "");
+
+              return React.cloneElement(child, {
+                ...child.props,
+                children: newChildren,
+              });
+            }
+            return child;
+          });
+
+        return <Callout type={type as "note" | "warning" | "error"}>{cleanContent}</Callout>;
+      }
+    }
+  }
+
+  return (
+    <blockquote className="p-4 my-6 border-l-4 border-theme-400 dark:border-theme-700 pl-4 italic bg-theme-200 dark:bg-theme-800">
+      {children}
+    </blockquote>
+  );
+}
 
 function Table({ data }: TableProps): React.JSX.Element {
   const headers = data.headers.map((header, index) => <th key={index}>{header}</th>);
@@ -100,6 +167,7 @@ const customComponents = {
   a: Link,
   code: Code,
   Table,
+  blockquote: BlockQuote,
 };
 
 export function MDX({ source, components, options }: MDXRemoteProps) {
