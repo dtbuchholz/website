@@ -13,6 +13,7 @@ export type Metadata = {
   tags?: string[];
   image?: string;
   sourceCode?: string;
+  repoName?: string;
 };
 
 export type Frontmatter = {

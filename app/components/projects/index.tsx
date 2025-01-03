@@ -109,7 +109,11 @@ export async function Projects() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                       <h3 className="font-bold text-lg text-theme-900 dark:text-theme-100 mb-2">
-                        {project.metadata.title}
+                        {project.metadata.repoName ? (
+                          <code>{project.metadata.repoName}</code>
+                        ) : (
+                          project.metadata.title
+                        )}
                       </h3>
                       <p className="text-theme-600 dark:text-theme-300 text-sm mb-4">
                         {project.metadata.description}

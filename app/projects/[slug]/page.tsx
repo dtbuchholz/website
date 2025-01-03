@@ -85,13 +85,16 @@ export default function Project({ params }: { params: PageParams }): React.React
       />
 
       <h1 className="title font-extrabold text-2xl tracking-tighter">{project.metadata.title}</h1>
-      <p className="title text-lg my-4 font-medium">{project.metadata.description}</p>
+      <p className="text-lg my-4 font-medium">{project.metadata.description}</p>
       <div className="flex justify-between items-center my-4 text-sm">
         <p className="text-sm text-theme-600 dark:text-theme-300">
           {formatDate(project.metadata.publishedAt)}{" "}
           {project.metadata.sourceCode && (
             <>
-              | <a href={project.metadata.sourceCode}>source code</a>
+              |{" "}
+              <Link href={project.metadata.sourceCode} target="_blank">
+                source code
+              </Link>
             </>
           )}
         </p>

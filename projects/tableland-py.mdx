@@ -1,6 +1,7 @@
 ---
-title: "tableland-py"
-description: "Python client for Tableland onchain SQL database"
+title: "Tableland Python SDK"
+repoName: "tableland-py"
+description: "Python client for Tableland—an onchain SQL database"
 publishedAt: "2024-04-22"
 sourceCode: https://github.com/dtbuchholz/tableland-py
 tags: python
@@ -91,7 +92,7 @@ print(owner)
 # Get table info
 schema = db.get_table_info(table_id)["schema"]["columns"]
 print(schema)
-# [{"name": "id", "type": "int"}, {"name": "val", "type": "text}]
+# [{"name": "id", "type": "int"}, {"name": "val", "type": "text"}]
 
 # Get the signer address
 address = db.get_signer_address()
@@ -120,7 +121,7 @@ base_uri = get_validator_base_uri(chain_id)
 print(base_uri)
 # http://localhost:8080/api/v1/
 
-# Get the validator's poling settings
+# Get the validator polling settings
 config = get_validator_polling_config(31337)
 print(config)
 # {"timeout": 5000, "interval": 1_500}
