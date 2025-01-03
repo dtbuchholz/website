@@ -104,6 +104,10 @@ async function summarize(
     const systemMessage = `
     You are a helpful assistant that summarizes text content concisely. 
     You MUST NOT make up information that is not provided in the text.
+    You will be provided with text that may include the contents of a file 
+    with its filename, or the contents of a directory with its directory name.
+    You MUST summarize the text in a way that is useful for a human reader, and 
+    you MUST speak conversationally, like you were the author of the text. 
     `;
     const prompt = `Please summarize the following text:\n\n${content}`;
     const completion = await client.chat.completions.create({
@@ -213,9 +217,13 @@ export async function POST(req: Request): Promise<NextResponse<LlmResponse | Api
 
       const data = (await response.json()) as FsItem[];
       // Join all the file contents
+      // TODO: Add support for recursive directories
       content = data
-        .filter((item) => item.fileContents)
-        .map((item) => `# Filename: ${item.name}\n${item.fileContents}`)
+        .map((item) =>
+          item.fileContents
+            ? `# Filename: ${item.name}\n${item.fileContents}`
+            : `# Directory name: ${item.name}\n`
+        )
         .join("\n");
     }
     return typeHandler(client, type, content, question);
