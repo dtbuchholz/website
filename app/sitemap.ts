@@ -1,4 +1,4 @@
-import { getBlogPosts } from "@/lib/content";
+import { getBlogPosts, getProjects } from "@/lib/content";
 
 export const baseUrl =
   process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://danbuchholz.com";
@@ -9,10 +9,15 @@ export default async function sitemap() {
     lastModified: post.metadata.publishedAt,
   }));
 
-  const routes = ["", "/blog"].map((route) => ({
+  const projects = getProjects().map((project) => ({
+    url: `${baseUrl}/projects/${project.slug}`,
+    lastModified: project.metadata.publishedAt,
+  }));
+
+  const routes = ["", "/blog", "/projects"].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));
 
-  return [...routes, ...blogs];
+  return [...routes, ...blogs, ...projects];
 }

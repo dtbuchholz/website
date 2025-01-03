@@ -30,7 +30,13 @@
     ],
     "simple-import-sort/exports": "warn"
   },
-  "ignorePatterns": ["node_modules", "next-env.d.ts", "postcss.config.js", "next.config.mjs"],
+  "ignorePatterns": [
+    "node_modules",
+    "next-env.d.ts",
+    "postcss.config.js",
+    "next.config.mjs",
+    "env.d.ts"
+  ],
   "globals": {
     // mocha
     "before": true,

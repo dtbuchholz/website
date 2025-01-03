@@ -85,7 +85,7 @@ export default function Project({ params }: { params: PageParams }): React.React
       />
 
       <h1 className="title font-extrabold text-2xl tracking-tighter">{project.metadata.title}</h1>
-      <h3 className="title text-lg my-4">{project.metadata.description}</h3>
+      <p className="title text-lg my-4 font-medium">{project.metadata.description}</p>
       <div className="flex justify-between items-center my-4 text-sm">
         <p className="text-sm text-theme-600 dark:text-theme-300">
           {formatDate(project.metadata.publishedAt)}{" "}
@@ -96,8 +96,8 @@ export default function Project({ params }: { params: PageParams }): React.React
           )}
         </p>
         <div className="flex justify-end items-center text-sm">
-          <Link href="/blog" className="back-to-home">
-            ← Back to posts
+          <Link href="/projects" className="back-to-home">
+            ← Back to projects
           </Link>
         </div>
       </div>

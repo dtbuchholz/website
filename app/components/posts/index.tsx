@@ -18,7 +18,7 @@ export function BlogPosts({ count }: { count?: number }) {
         .map((post) => (
           <Link
             key={post.slug}
-            className="flex flex-col space-y-1 mb-4"
+            className="flex flex-col space-y-1 mb-4 underline transition-all text-theme-600 dark:text-theme-300 decoration-theme-400 dark:decoration-theme-500 underline-offset-2 decoration-[0.1em] hover:decoration-theme-700 dark:hover:decoration-theme-200 hover:text-theme-700 dark:hover:text-theme-200"
             href={`/blog/${post.slug}`}
           >
             <div className="card">
