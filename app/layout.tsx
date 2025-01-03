@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import Footer from "@/components/footer";
 import { Navbar } from "@/components/nav";
 import { baseUrl } from "./sitemap";
+import "katex/dist/katex.min.css";
 import "./global.css";
 
 export const metadata: Metadata = {

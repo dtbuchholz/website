@@ -3,6 +3,8 @@ import NextLink from "next/link";
 import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
 import { ComponentProps } from "react";
 import React from "react";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 import { highlight } from "sugar-high";
 
 import { slugify } from "@/lib/content";
@@ -87,7 +89,7 @@ function createHeading(level: number) {
   return Heading;
 }
 
-const components = {
+const customComponents = {
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -100,6 +102,21 @@ const components = {
   Table,
 };
 
-export function MDX(props: MDXRemoteProps) {
-  return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />;
+export function MDX({ source, components, options }: MDXRemoteProps) {
+  return (
+    <MDXRemote
+      source={source}
+      options={{
+        mdxOptions: {
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
+        },
+        ...options,
+      }}
+      components={{
+        ...customComponents,
+        ...(components || {}),
+      }}
+    />
+  );
 }
