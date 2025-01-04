@@ -17,12 +17,11 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-
-  // Set initial width based on viewport
   const [width, setWidth] = useState(() => {
     if (typeof window === "undefined") return "48rem";
     return window.innerWidth < 768 ? `${window.innerWidth}px` : "48rem";
   });
+  const currentWidthRef = useRef(width);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -30,24 +29,31 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
   }, [onClose]);
 
   // Handle window resize
+  // TODO: resizing the window while the drawer is open is jittery
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
         // On mobile, use full width
         setWidth(`${window.innerWidth}px`);
-      } else if (width.includes("px")) {
+        currentWidthRef.current = `${window.innerWidth}px`;
+      } else if (currentWidthRef.current.includes("px")) {
         // If width is in pixels (from either mobile or manual resize)
-        const currentWidth = parseInt(width);
+        const currentWidth = parseInt(currentWidthRef.current);
         if (currentWidth > window.innerWidth) {
           // If drawer is wider than viewport, constrain it
           setWidth(`${window.innerWidth}px`);
+          currentWidthRef.current = `${window.innerWidth}px`;
         }
       }
     };
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Run once on mount
 
+    window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Update ref when width changes
+  useEffect(() => {
+    currentWidthRef.current = width;
   }, [width]);
 
   // Handle resize functionality
