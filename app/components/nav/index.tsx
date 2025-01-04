@@ -23,7 +23,7 @@ export function Navbar() {
     <aside className="mb-12 tracking-tight">
       <div className="lg:sticky lg:top-20">
         <nav className="relative" id="nav">
-          {/* Desktop Navigation */}
+          {/* Desktop navigation */}
           <div className="hidden md:flex flex-row items-start px-0 pb-0 fade md:overflow-auto scroll-pr-6">
             <div className="flex flex-row space-x-0 justify-between w-full">
               <div className="flex flex-row space-x-0">
@@ -51,43 +51,75 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile navigation */}
           <div className="md:hidden">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="py-2 pl-0 mr-4 text-theme-600 dark:text-theme-300 cursor-pointer transition-all hover:text-theme-900 dark:hover:text-theme-100"
+              >
+                <FaBars size={24} />
+              </button>
               <Link
                 href="/"
                 className="flex items-center align-middle relative py-1 ml-0 pl-0 pr-2 m-1 font-bold text-lg leading-none"
               >
                 dan buchholz
               </Link>
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="cursor-pointer transition-all p-2 text-theme-600 dark:text-theme-300 hover:text-theme-900 dark:hover:text-theme-100"
-              >
-                {isOpen ? <FaXmark size={24} /> : <FaBars size={24} />}
-              </button>
             </div>
 
-            {/* Mobile Menu */}
-            {isOpen && (
-              <div className="z-10000 absolute top-full left-0 right-0 bg-theme-200 dark:bg-theme-800 border border-theme-400 dark:border-theme-700 rounded-lg mt-2 py-2 shadow-lg">
-                <div className="flex flex-col">
-                  {Object.entries(navItems).map(([path, { name }]) => (
-                    <Link
-                      key={path}
-                      href={path}
-                      onClick={() => setIsOpen(false)}
-                      className="transition-all py-2 px-4 hover:bg-theme-300 dark:hover:bg-theme-700 dark:text-theme-300 dark:hover:text-theme-100"
-                    >
-                      /{name}
+            {/* Slide-out Menu */}
+            <div
+              className={`fixed inset-0 z-50 ${
+                isOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            >
+              {/* Overlay */}
+              <div
+                className={`fixed inset-0 bg-neutral-950/50 transition-opacity duration-300 ${
+                  isOpen ? "opacity-100" : "opacity-0"
+                }`}
+                onClick={() => setIsOpen(false)}
+              />
+
+              {/* Drawer */}
+              <div
+                className={`absolute left-0 top-0 h-full w-64 bg-theme-100 dark:bg-theme-900 shadow-lg transform transition-transform duration-300 ease-in-out ${
+                  isOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
+              >
+                <div className="p-4">
+                  <div className="flex justify-between items-center mb-8">
+                    <Link href="/" onClick={() => setIsOpen(false)} className="font-bold text-lg">
+                      dan buchholz
                     </Link>
-                  ))}
-                  <div className="border-t border-theme-400 dark:border-theme-700 mt-2 pt-2 px-4">
-                    <SocialLinks />
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-2 text-theme-600 dark:text-theme-300 cursor-pointer transition-all hover:text-theme-900 dark:hover:text-theme-100"
+                    >
+                      <FaXmark size={24} />
+                    </button>
+                  </div>
+                  <div className="flex flex-col space-y-4">
+                    {Object.entries(navItems).map(([path, { name }]) => (
+                      <Link
+                        key={path}
+                        href={path}
+                        onClick={() => setIsOpen(false)}
+                        className="transition-all py-2 hover:text-theme-900 dark:text-theme-300 dark:hover:text-theme-100"
+                      >
+                        /{name}
+                      </Link>
+                    ))}
+                    <div className="pt-4 mt-4 border-t border-theme-400 dark:border-theme-700">
+                      <div className="flex space-x-4">
+                        <SocialLinks />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </nav>
       </div>
