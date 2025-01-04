@@ -16,12 +16,66 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Set initial width based on viewport
+  const [width, setWidth] = useState(() => {
+    if (typeof window === "undefined") return "48rem";
+    return window.innerWidth < 768 ? `${window.innerWidth}px` : "48rem";
+  });
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    // Wait for animation to complete before unmounting
-    setTimeout(onClose, 300); // Match duration-300
+    setTimeout(onClose, 300);
   }, [onClose]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        // On mobile, use full width
+        setWidth(`${window.innerWidth}px`);
+      } else if (width.includes("px")) {
+        // If width is in pixels (from either mobile or manual resize)
+        const currentWidth = parseInt(width);
+        if (currentWidth > window.innerWidth) {
+          // If drawer is wider than viewport, constrain it
+          setWidth(`${window.innerWidth}px`);
+        }
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Run once on mount
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [width]);
+
+  // Handle resize functionality
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      const newWidth = window.innerWidth - e.clientX;
+      const minWidth = window.innerWidth < 768 ? window.innerWidth : 400;
+      const maxWidth = window.innerWidth - 100;
+      const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+      setWidth(`${clampedWidth}px`);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
 
   useEffect(() => {
     // Trigger the animation after mount
@@ -74,16 +128,25 @@ export function FileViewer({ path, onClose }: FileViewerProps) {
       {/* Drawer */}
       <div
         ref={contentRef}
-        className={`absolute right-0 top-0 h-full w-full md:w-[48rem] bg-theme-950 shadow-lg transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        style={{ width }}
+        className={`absolute right-0 top-0 h-full bg-theme-950 ${
+          isResizing
+            ? ""
+            : "transition-transform duration-300 ease-in-out transform" +
+              ` ${isOpen ? "translate-x-0" : "translate-x-full"}`
         }`}
       >
+        {/* Resize Handle */}
+        <div
+          className={`absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-theme-400`}
+          onMouseDown={() => setIsResizing(true)}
+        />
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-theme-900">
+        <div className="flex justify-between items-center p-2 border-b border-theme-900">
           <span className="text-theme-200 text-sm font-mono truncate">{path}</span>
           <button
             onClick={handleClose}
-            className="p-2 text-theme-300 hover:text-theme-100 transition-colors"
+            className="p-2 cursor-pointer text-theme-300 hover:text-theme-100 transition-colors"
           >
             <FaXmark size={20} />
           </button>
