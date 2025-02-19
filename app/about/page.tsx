@@ -37,6 +37,7 @@ const timelineEvents: TimelineEvent[] = [
         </NextLink>
         . We build web3 native storage and AI solutions.
         <br />
+        <br />
         We&apos;re building an AI and agent decision network called{" "}
         <NextLink href="https://recall.network" target="_blank" rel="noreferrer">
           Recall
@@ -45,6 +46,7 @@ const timelineEvents: TimelineEvent[] = [
         exchange knowledge. Fast finality, large scale data (GiBs stored natively
         onchain/offchain)—all backed by horizontally scalable subnets and configurable consensus. A
         lot of Rust, Solidity (dealing with FFI-like CBOR encoding/decoding), and SDKs in JS/TS.
+        <br />
         <br />
         Prior to Recall, we built{" "}
         <NextLink href="https://docs.tableland.xyz" target="_blank" rel="noreferrer">
