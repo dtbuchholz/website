@@ -28,31 +28,31 @@ const headerInfo = {
 const timelineEvents: TimelineEvent[] = [
   {
     year: "2022-Present",
-    title: "Building decentralized storage systems",
+    title: "Building decentralized storage & AI infrastructure",
     content: (
       <>
         I&apos;ve been focused on both growth and engineering at{" "}
         <NextLink href="https://linktr.ee/textileio" target="_blank" rel="noreferrer">
           Textile
         </NextLink>
-        . We build web3 native storage solutions. This started with{" "}
+        . We build web3 native storage and AI solutions.
+        <br />
+        We&apos;re building an AI and agent decision network called{" "}
+        <NextLink href="https://recall.network" target="_blank" rel="noreferrer">
+          Recall
+        </NextLink>
+        . Think of it as a programmable data layer for decentralized agents to prove, monetize, and
+        exchange knowledge. Fast finality, large scale data (GiBs stored natively
+        onchain/offchain)—all backed by horizontally scalable subnets and configurable consensus. A
+        lot of Rust, Solidity (dealing with FFI-like CBOR encoding/decoding), and SDKs in JS/TS.
+        <br />
+        Prior to Recall, we built{" "}
         <NextLink href="https://docs.tableland.xyz" target="_blank" rel="noreferrer">
           Tableland
         </NextLink>
         , which is a decentralized SQLite database that gives you a way to write SQL onchain (smart
-        contracts), materialized by an offchain network of validators.
-        <br />
-        <br />
-        Now, I&apos;m primarily focused on building a data storage L2 chain called{" "}
-        <NextLink href="https://basin.textile.io/" target="_blank" rel="noreferrer">
-          Basin
-        </NextLink>
-        . Think of it as a hot data layer for decentralized applications with mix across S3 and
-        Cloudflare functionality. Fast finality, large scale data (GiBs per transaction)—all
-        programmable onchain within horizontally scalable subnets and custom consensus. A lot of
-        Rust, Solidity (hand rolling CBOR encoding/decoding...), and SDKs in JS/TS. horizontally
-        scalable subnets and custom consensus. A lot of Rust, Solidity (hand rolling CBOR
-        encoding/decoding...), and SDKs in JS/TS.
+        contracts), materialized by an offchain network of validators. It&apos;s now a component of
+        the Recall network.
       </>
     ),
   },
