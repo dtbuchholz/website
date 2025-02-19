@@ -4,7 +4,7 @@
 
 ## Background
 
-This was cloned from the NextJS starter template [here](https://github.com/vercel/examples/tree/main/solutions/blog) and customized to my needs. It's pretty lightweight and designed to act as a blog site, with various features for experiments (such as an [xterm.js](https://github.com/xtermjs/xterm.js) terminal).
+This was cloned from the NextJS starter template [here](https://github.com/vercel/examples/tree/main/solutions/blog) and customized to my needs. It's pretty lightweight and designed to act as a blog site, with various features for experiments (such as an [xterm.js](https://github.com/xtermjs/xterm.js) terminal to explore writings).
 
 You can see the site [here](https://danbuchholz.com).
 
