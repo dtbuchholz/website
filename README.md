@@ -1,6 +1,6 @@
 # Website
 
-> A personal website for me—Dan Buchholz—with a blog, about page, other features.
+> A personal website for me (Dan Buchholz) with a blog, about page, other features.
 
 ## Background
 
