@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export const PROJECTS_DIR = path.join(process.cwd(), "projects");
-export const RESEARCH_DIR = process.env.RESEARCH_DIR || path.join(process.cwd(), "research");
+export const RESEARCH_DIR = path.join(process.cwd(), "research");
 export const BLOG_POSTS_DIR = path.join(RESEARCH_DIR, "posts");
 export const NOTES_DIR = path.join(RESEARCH_DIR, "notes");
 
