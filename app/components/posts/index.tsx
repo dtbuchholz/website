@@ -5,6 +5,12 @@ import { formatDate, getBlogPosts } from "@/lib/content";
 export function BlogPosts({ count }: { count?: number }) {
   const allBlogs = getBlogPosts();
 
+  if (allBlogs.length === 0) {
+    return (
+      <p className="text-theme-500 dark:text-theme-400">No posts yet. Check back soon.</p>
+    );
+  }
+
   return (
     <div>
       {allBlogs
